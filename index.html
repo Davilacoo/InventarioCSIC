@@ -1,0 +1,4616 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html lang="es"><head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Inventario de Ordenadores</title>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'IBM Plex Sans', sans-serif; background: #f2f1ee; color: #1a1a1a; min-height: 100vh; }
+.wrap { max-width: 1100px; margin: 0 auto; padding: 2.5rem 1.5rem; }
+.header { margin-bottom: 2rem; border-left: 4px solid #1a1a1a; padding-left: 1rem; }
+h1 { font-family: 'IBM Plex Mono', monospace; font-size: 1.4rem; font-weight: 600; letter-spacing: -0.02em; color: #1a1a1a; }
+.subtitle { font-size: 0.8rem; color: #666; margin-top: 3px; font-family: 'IBM Plex Mono', monospace; }
+.search-panel { background: #fff; border: 1px solid #d8d6d2; border-radius: 4px; padding: 1.25rem 1.5rem; margin-bottom: 1.25rem; }
+.search-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
+.field { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 150px; }
+.field label { font-size: 0.68rem; color: #555; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; font-family: 'IBM Plex Mono', monospace; }
+.field input { height: 38px; padding: 0 12px; border: 1px solid #ccc; border-radius: 3px; background: #fafaf8; color: #1a1a1a; font-size: 0.88rem; font-family: 'IBM Plex Mono', monospace; transition: border-color 0.15s, background 0.15s; }
+.field input:focus { outline: none; border-color: #1a1a1a; background: #fff; }
+.btn-row { display: flex; gap: 8px; align-items: flex-end; flex-shrink: 0; }
+.btn { height: 38px; padding: 0 18px; border-radius: 3px; border: 1px solid #1a1a1a; font-size: 0.8rem; font-family: 'IBM Plex Mono', monospace; font-weight: 600; cursor: pointer; transition: all 0.15s; letter-spacing: 0.02em; }
+.btn-primary { background: #1a1a1a; color: #f2f1ee; }
+.btn-primary:hover { background: #333; }
+.btn-primary:active { transform: scale(0.97); }
+.btn-secondary { background: #fff; color: #1a1a1a; }
+.btn-secondary:hover { background: #f2f1ee; }
+.btn-secondary:active { transform: scale(0.97); }
+.btn:disabled, .btn:disabled:hover { background: #e4e2de !important; color: #9a978f !important; border-color: #d8d6d2 !important; cursor: not-allowed; }
+.btn:disabled:active { transform: none; }
+
+/* Stats row */
+.stats { display: flex; gap: 10px; margin-bottom: 1rem; flex-wrap: wrap; }
+.stat { background: #fff; border: 1px solid #d8d6d2; border-radius: 4px; padding: 10px 18px; min-width: 130px; }
+.stat .lbl { font-size: 0.65rem; color: #888; text-transform: uppercase; letter-spacing: 0.07em; font-family: 'IBM Plex Mono', monospace; }
+.stat .val { font-size: 1.6rem; font-weight: 600; color: #1a1a1a; margin-top: 2px; font-family: 'IBM Plex Mono', monospace; }
+
+/* Aulas panel */
+.aulas-panel { background: #fff; border: 1px solid #d8d6d2; border-radius: 4px; margin-bottom: 1.25rem; overflow: hidden; }
+.aulas-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 18px; cursor: pointer; user-select: none; border-bottom: 1px solid transparent; transition: background 0.15s; }
+.aulas-header:hover { background: #f7f6f3; }
+.aulas-header.open { border-bottom-color: #e8e6e2; }
+.aulas-title { font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; font-family: 'IBM Plex Mono', monospace; color: #555; }
+.aulas-toggle { font-size: 0.75rem; color: #999; font-family: 'IBM Plex Mono', monospace; }
+.aulas-body { display: none; padding: 14px 18px; }
+.aulas-body.open { display: block; }
+.aulas-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 6px; }
+.aula-item { display: flex; justify-content: space-between; align-items: center; background: #f7f6f3; border-radius: 3px; padding: 5px 10px; font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; }
+.aula-item .aula-name { color: #444; font-weight: 600; }
+.aula-item .aula-count { background: #1a1a1a; color: #f2f1ee; border-radius: 3px; padding: 1px 7px; font-size: 0.7rem; min-width: 24px; text-align: center; }
+
+/* Table */
+.table-wrap { border: 1px solid #d8d6d2; border-radius: 4px; overflow: hidden; background: #fff; }
+table { width: 100%; border-collapse: collapse; font-size: 0.82rem; table-layout: fixed; }
+thead th { background: #1a1a1a; padding: 10px 16px; text-align: left; font-weight: 600; color: #f2f1ee; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.07em; font-family: 'IBM Plex Mono', monospace; }
+th:nth-child(1) { width: 4%; }
+th:nth-child(2) { width: 26%; }
+th:nth-child(3) { width: 18%; }
+th:nth-child(4) { width: 28%; }
+th:nth-child(5) { width: 24%; }
+thead th:nth-child(1) { padding: 10px 8px; text-align:center; }
+td:nth-child(1) { padding: 0; text-align:center; }
+td:nth-child(1) input[type=checkbox] { accent-color:#1a1a1a; width:15px; height:15px; cursor:pointer; vertical-align:middle; }
+
+/* Selection bar */
+.sel-bar { display:none; position:fixed; bottom:1.5rem; left:50%; transform:translateX(-50%); background:#1a1a1a; color:#f2f1ee; border-radius:6px; padding:0.7rem 1.25rem; box-shadow:0 4px 20px rgba(0,0,0,0.25); z-index:9000; align-items:center; gap:14px; font-family:'IBM Plex Mono',monospace; font-size:0.82rem; white-space:nowrap; }
+.sel-bar.visible { display:flex; }
+.sel-bar .sel-count { font-weight:600; }
+.sel-bar .sel-btn { height:30px; padding:0 14px; border-radius:3px; border:1px solid rgba(255,255,255,0.3); background:transparent; color:#f2f1ee; font-family:'IBM Plex Mono',monospace; font-size:0.75rem; font-weight:600; cursor:pointer; transition:background 0.15s; }
+.sel-bar .sel-btn:hover { background:rgba(255,255,255,0.12); }
+.sel-bar .sel-btn.accent { background:#f2f1ee; color:#1a1a1a; border-color:#f2f1ee; }
+.sel-bar .sel-btn.accent:hover { background:#ddd; }
+.sel-bar .sep { width:1px; height:20px; background:rgba(255,255,255,0.2); }
+
+/* SO badges */
+.so-badge { display: inline-block; border-radius: 3px; padding: 1px 7px; font-size: 0.7rem; font-family: 'IBM Plex Mono', monospace; font-weight: 600; margin-right: 2px; }
+.so-win10  { background: #dbeafe; color: #1e40af; }
+.so-win11  { background: #ede9fe; color: #5b21b6; }
+.so-linux  { background: #fef3c7; color: #92400e; }
+.so-otro   { background: #f3f4f6; color: #374151; }
+.so-vacio  { color: #bbb; font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem; }
+
+/* Edit PC modal */
+.edit-modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:10000; align-items:center; justify-content:center; }
+.edit-modal-overlay.open { display:flex; }
+.edit-modal { background:#fff; border-radius:6px; padding:1.75rem 2rem; max-width:480px; width:92%; box-shadow:0 8px 32px rgba(0,0,0,0.18); font-family:'IBM Plex Sans',sans-serif; }
+.edit-modal h2 { font-family:'IBM Plex Mono',monospace; font-size:0.95rem; font-weight:600; border-left:3px solid #1a1a1a; padding-left:0.65rem; margin-bottom:1.25rem; }
+.edit-field { display:flex; flex-direction:column; gap:4px; margin-bottom:0.85rem; }
+.edit-field label { font-size:0.65rem; color:#555; font-weight:600; text-transform:uppercase; letter-spacing:0.07em; font-family:'IBM Plex Mono',monospace; }
+.edit-field input { height:36px; padding:0 10px; border:1px solid #ccc; border-radius:3px; background:#fafaf8; font-family:'IBM Plex Mono',monospace; font-size:0.85rem; color:#1a1a1a; }
+.edit-field input:focus { outline:none; border-color:#1a1a1a; background:#fff; }
+.edit-so-checks { display:flex; flex-wrap:wrap; gap:10px; margin-top:4px; }
+.edit-so-checks label { display:flex; align-items:center; gap:6px; font-family:'IBM Plex Mono',monospace; font-size:0.82rem; cursor:pointer; }
+.edit-so-checks input[type=checkbox] { accent-color:#1a1a1a; width:14px; height:14px; }
+.edit-modal-footer { display:flex; justify-content:space-between; align-items:center; margin-top:1.4rem; gap:8px; }
+.edit-modal-footer .btn-danger { height:34px; padding:0 14px; border-radius:3px; border:1px solid #dc2626; background:#fff; color:#dc2626; font-family:'IBM Plex Mono',monospace; font-size:0.75rem; font-weight:600; cursor:pointer; }
+.edit-modal-footer .btn-danger:hover { background:#fef2f2; }
+.edit-modal-footer .right { display:flex; gap:8px; }
+tbody tr { cursor:pointer; }
+tbody tr:hover td { background:#f0eeeb !important; }
+tbody tr.row-selected td { background:#f0f4ff !important; }
+.so-popup-wrap { position: relative; display: inline-block; }
+.so-popup {
+  display: none; position: fixed; z-index: 9999;
+  background: #fff; border: 1px solid #1a1a1a; border-radius: 4px;
+  padding: 10px 14px; box-shadow: 0 4px 16px rgba(0,0,0,0.13);
+  min-width: 160px;
+}
+.so-popup.open { display: block; }
+.so-popup label {
+  display: flex; align-items: center; gap: 8px;
+  font-family: 'IBM Plex Mono', monospace; font-size: 0.82rem;
+  padding: 4px 0; cursor: pointer; user-select: none;
+}
+.so-popup label:hover { color: #555; }
+.so-popup input[type=checkbox] { accent-color: #1a1a1a; width: 14px; height: 14px; cursor: pointer; }
+.so-edit-btn { cursor: pointer; font-size: 0.68rem; color: #aaa; margin-left: 3px; vertical-align: middle; }
+.so-edit-btn:hover { color: #1a1a1a; }
+tbody tr { border-bottom: 1px solid #eeece8; transition: background 0.1s; }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: #f7f6f3; }
+td { padding: 9px 16px; color: #1a1a1a; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: 'IBM Plex Mono', monospace; font-size: 0.82rem; }
+td.toma-empty { color: #bbb; }
+.badge { display: inline-block; background: #e8f5e9; color: #2e7d32; border-radius: 3px; padding: 1px 6px; font-size: 0.72rem; font-family: 'IBM Plex Mono', monospace; }
+.empty { padding: 2.5rem; text-align: center; color: #999; font-size: 0.85rem; font-family: 'IBM Plex Mono', monospace; display: none; }
+.pager { display: flex; align-items: center; justify-content: flex-end; gap: 10px; margin-top: 12px; font-size: 0.75rem; color: #888; font-family: 'IBM Plex Mono', monospace; }
+.pager .btn { height: 30px; padding: 0 12px; font-size: 0.7rem; }
+
+/* Lote / import modals */
+.lote-radio-row { display:flex; gap:16px; font-family:'IBM Plex Mono',monospace; font-size:0.82rem; }
+.lote-radio-row label { display:flex; align-items:center; gap:6px; cursor:pointer; }
+.lote-radio-row input[type=radio] { accent-color:#1a1a1a; width:14px; height:14px; }
+.lote-check-row { display:flex; align-items:center; gap:6px; font-family:'IBM Plex Mono',monospace; font-size:0.8rem; margin-top:-2px; margin-bottom:0.85rem; }
+.lote-check-row input[type=checkbox] { accent-color:#1a1a1a; width:14px; height:14px; cursor:pointer; }
+.lote-hint { font-family:'IBM Plex Mono',monospace; font-size:0.7rem; color:#999; margin-top:-6px; margin-bottom:0.85rem; }
+.lote-count { font-family:'IBM Plex Mono',monospace; font-size:0.78rem; color:#666; margin-bottom:1rem; }
+.import-actions { display:flex; gap:8px; margin-bottom:1rem; }
+.import-actions .btn { flex:1; }
+.import-upload-label { display:flex; align-items:center; justify-content:center; }
+.import-preview-summary { font-family:'IBM Plex Mono',monospace; font-size:0.72rem; color:#555; margin-bottom:6px; }
+.import-preview-table-wrap { border:1px solid #d8d6d2; border-radius:4px; max-height:220px; overflow:auto; margin-bottom:1rem; }
+.import-preview-table-wrap table { width:100%; border-collapse:collapse; font-size:0.75rem; font-family:'IBM Plex Mono',monospace; }
+.import-preview-table-wrap th { padding:5px 8px; color:#fff; text-align:left; background:#1a1a1a; position:sticky; top:0; }
+.import-preview-table-wrap td { padding:4px 8px; border-bottom:1px solid #eeece8; }
+.import-ok { color:#2e7d32; }
+.import-bad { color:#dc2626; }
+
+/* ==================== RESPONSIVE / MÓVIL ==================== */
+@media (max-width: 720px) {
+  .wrap { padding: 1.1rem 0.7rem; }
+  h1 { font-size: 1.15rem; }
+  .subtitle { font-size: 0.72rem; }
+
+  /* Buscador: los campos se apilan a ancho completo */
+  .search-panel { padding: 1rem; }
+  .search-row { flex-direction: column; align-items: stretch; gap: 10px; }
+  .field { min-width: 100%; }
+  .btn-row { flex-wrap: wrap; width: 100%; gap: 8px; }
+  .btn-row .btn { flex: 1 1 auto; min-width: 44%; }
+
+  /* Estadísticas más compactas */
+  .stats { gap: 7px; }
+  .stat { min-width: 44%; flex: 1 1 44%; padding: 8px 12px; }
+  .stat .val { font-size: 1.25rem; }
+
+  .aulas-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+
+  /* Tabla: scroll horizontal en vez de comprimir columnas ilegibles */
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table { table-layout: auto; min-width: 620px; }
+  td, thead th { padding: 8px 10px; }
+
+  .pager { flex-wrap: wrap; justify-content: center; }
+
+  /* Barra flotante de selección: ancho completo y con scroll horizontal */
+  .sel-bar {
+    left: 0; right: 0; bottom: 0; transform: none;
+    width: 100%; max-width: none; border-radius: 0;
+    justify-content: flex-start; overflow-x: auto; -webkit-overflow-scrolling: touch;
+    padding: 0.65rem 0.85rem; gap: 10px;
+  }
+  .sel-bar .sel-count { flex-shrink: 0; }
+  .sel-bar .sel-btn { flex-shrink: 0; }
+  .sel-bar .sep { flex-shrink: 0; }
+
+  /* Modales: menos padding y más ancho relativo en pantallas pequeñas */
+  .edit-modal { padding: 1.25rem 1.1rem; width: 94%; max-height: 88vh; overflow-y: auto; }
+  .edit-modal h2 { font-size: 0.88rem; }
+  .edit-modal-footer { flex-wrap: wrap; }
+  .edit-modal-footer .right { width: 100%; justify-content: flex-end; }
+  .import-actions { flex-direction: column; }
+
+  #informeModal > div { padding: 1.25rem 1.1rem !important; width: 94% !important; max-height: 88vh; overflow-y: auto; }
+  #informeModal table { font-size: 0.72rem !important; }
+}
+
+@media (max-width: 420px) {
+  .stat { min-width: 100%; flex: 1 1 100%; }
+  .btn-row .btn { min-width: 100%; }
+}
+</style></head><body>
+<div class="wrap">
+  <div class="header">
+    <h1>Inventario de Ordenadores</h1>
+    <p class="subtitle">Consulta de registros — Nombre · Cód. Inventario · Toma · Sistema Operativo</p>
+  </div>
+
+  <div class="search-panel">
+    <div class="search-row">
+      <div class="field">
+        <label>Nombre del ordenador</label>
+        <input id="searchName" placeholder="Ej: CUB146161" type="text">
+      </div>
+      <div class="field">
+        <label>Número de inventario (COD)</label>
+        <input id="searchCod" placeholder="Ej: 5331" type="text">
+      </div>
+      <div class="field">
+        <label>Toma</label>
+        <input id="searchToma" placeholder="Ej: R2.0.110" type="text">
+      </div>
+      <div class="field">
+        <label>Sistema Operativo</label>
+        <select id="searchSO" style="height:38px;padding:0 12px;border:1px solid #ccc;border-radius:3px;background:#fafaf8;color:#1a1a1a;font-size:0.88rem;font-family:'IBM Plex Mono',monospace;">
+          <option value="">— Todos —</option>
+          <option value="Windows 10">Windows 10</option>
+          <option value="Windows 11">Windows 11</option>
+          <option value="Linux">Linux</option>
+          <option value="Otro">Otro</option>
+        </select>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="btnGuardar" onclick="guardarTodo()" style="background:#8B1A2E;border-color:#8B1A2E;">💾 Guardar</button>
+        <button class="btn btn-secondary" id="btnImportarJson" onclick="document.getElementById('importJsonFileInput').click()">⬆ Importar JSON</button>
+        <input type="file" id="importJsonFileInput" accept=".json,application/json" style="display:none;" onchange="handleImportJson(event)">
+        <button class="btn btn-primary" id="btnExportExcel" onclick="exportExcel()" style="background:#217346;border-color:#217346;">📊 Exportar Excel</button>
+        <button class="btn btn-primary" id="btnExportWord" onclick="exportWord()" style="background:#2b579a;border-color:#2b579a;">📝 Exportar Word</button>
+        <button class="btn btn-secondary" onclick="abrirImportModal()">⬆ Subir modificaciones</button>
+        <button class="btn btn-secondary" onclick="abrirRestoreModal()">↺ Restaurar</button>
+        <button class="btn btn-secondary" onclick="clearSearch()">↻ Limpiar</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat">
+      <div class="lbl">Total registros</div>
+      <div class="val" id="statTotal">0</div>
+    </div>
+    <div class="stat">
+      <div class="lbl">Resultados</div>
+      <div class="val" id="statResults">0</div>
+    </div>
+    <div class="stat">
+      <div class="lbl">Con toma</div>
+      <div class="val" id="statToma">0</div>
+    </div>
+    <div class="stat">
+      <div class="lbl">Grupos / Aulas</div>
+      <div class="val" id="statAulas">0</div>
+    </div>
+    <div class="stat">
+      <div class="lbl">Con SO asignado</div>
+      <div class="val" id="statSO">0</div>
+    </div>
+  </div>
+
+  <!-- PCs por aula collapsible -->
+  <div class="aulas-panel">
+    <div class="aulas-header" id="aulasHeader" onclick="toggleAulas()">
+      <span class="aulas-title">📊 PCs por grupo / aula (resultados actuales)</span>
+      <span class="aulas-toggle" id="aulasToggle">▼ mostrar</span>
+    </div>
+    <div class="aulas-body" id="aulasBody">
+      <div class="aulas-grid" id="aulasGrid"></div>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th><input type="checkbox" id="chkAll" title="Seleccionar todo" onchange="toggleAll(this.checked)" style="accent-color:#f2f1ee;width:15px;height:15px;cursor:pointer;"></th>
+          <th>Nombre</th>
+          <th>Cód. inventario</th>
+          <th>Toma</th>
+          <th>Sistema Operativo</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+    <div id="emptyMsg" class="empty">No se encontraron registros</div>
+  </div>
+
+  <div class="pager">
+    <span id="pageInfo"></span>
+    <button id="btnPrev" class="btn btn-secondary" onclick="changePage(-1)">« Anterior</button>
+    <button id="btnNext" class="btn btn-secondary" onclick="changePage(1)">Siguiente »</button>
+  </div>
+</div>
+
+<!-- Floating selection bar -->
+<div class="sel-bar" id="selBar">
+  <span class="sel-count" id="selCount">0 seleccionados</span>
+  <div class="sep"></div>
+  <button class="sel-btn" onclick="deseleccionarTodo()">✕ Quitar selección</button>
+  <button class="sel-btn" onclick="seleccionarTodaLaBusqueda()">☑ Seleccionar todos los resultados</button>
+  <div class="sep"></div>
+  <button class="sel-btn" onclick="abrirSOLoteModal()">🖥 Asignar SO</button>
+  <button class="sel-btn" onclick="abrirEditLoteModal()">✎ Editar en lote</button>
+  <div class="sep"></div>
+  <button class="sel-btn accent" onclick="abrirInforme()">📄 Generar informe</button>
+</div>
+
+<script>
+const RAW = [
+[5331,'CUB146161','R2.0.110'],
+[5332,'CUC146162','R2.0.177'],
+[5333,'CUC146163','R2.0.99'],
+[5334,'CUC146164','R2.0.100'],
+[5335,'CUC146165','R2.0.151'],
+[5336,'CUB146166','R2.0.175'],
+[5337,'CUC146167','R2.0.103'],
+[5339,'CUC146169','R2.0.104'],
+[5340,'CUC146170','R2.0.152'],
+[5342,'CUC146172','R2.0.105'],
+[5343,'CUB146173','R2.0.150'],
+[5344,'CUC146174','R2.0.178'],
+[5345,'CUC146175','R2.0.97'],
+[5346,'CUC146176','R2.0.135'],
+[5347,'CUB146177','R2.0.109'],
+[5348,'CUC146178','R2.0.176'],
+[5349,'CUC146179','R2.0.134'],
+[5351,'CUB146181',''],
+[5352,'CUC146182','R2.0.102'],
+[5353,'CUC146183','R2.0.106'],
+[5354,'CUB146184',''],
+[5538,'SIS132073','P1.V22'],
+[5539,'SIS132074','P2.D246'],
+[5540,'SIS132075','P2.D239'],
+[5541,'SIS132076','P1.INF 6'],
+[5542,'BAH139050','PS-D38'],
+[5543,'BAH139051','PS-D6'],
+[5544,'BAH139052','PS-D2'],
+[5545,'BAH139053','PS-D3'],
+[5546,'BAH139054','PS-D7'],
+[5547,'BAH139055','PS-D10'],
+[5548,'BAH139056','PS-D15'],
+[5549,'BAH139057','PS-D13'],
+[5550,'BAH139058','PS-D11'],
+[5551,'BAH139059','PS-D5'],
+[5552,'BAH139060','PS-D1'],
+[5553,'BAH139061','PS-D4'],
+[5554,'BAH139062','PS-D8'],
+[5555,'BAH139063','PS-D9'],
+[5556,'BAH139064','PS-D16'],
+[5557,'BAH139065','PS-D14'],
+[5558,'BAH139066','PS-D12'],
+[5559,'BAH139067','PS-D32'],
+[5560,'BAH139068','PS-D31'],
+[5561,'BAH139069','PS-D37'],
+[5562,'BAH139070','PS-D24'],
+[5563,'BAH139071','PS-D28'],
+[5564,'BAH139072','PS-D34'],
+[5565,'BAH139073','PS-D23'],
+[5566,'BAH139074','PS-D19'],
+[5567,'BAH139075','PS-D21'],
+[5568,'BAH139076','PS-D29'],
+[5569,'BAH139077','PS-D26'],
+[5570,'BAH139078','PS-D27'],
+[5571,'BAH139079','PS-D25'],
+[5572,'BAH139080','PS-D22'],
+[5573,'BAH139081','PS-D20'],
+[5574,'CIK119111','P2-D68'],
+[5575,'CIK119113','P2-D66'],
+[5577,'CIK119112','P2-D67'],
+[5580,'CIK119100','P2-D70'],
+[5588,'CIK119101','P2-D69'],
+[5589,'CIK119102','P2-D71'],
+[5590,'CIK119103','P2-D72'],
+[5592,'CIK119104','P2-D73'],
+[5594,'CIK119105','P2-D79'],
+[5597,'CIK119106','P2-D77'],
+[5601,'CIK119107','P2-D78'],
+[5602,'CIK119108','P2-D76'],
+[5603,'CIK119109','P2-D75'],
+[5605,'CIK119110','P2-D74'],
+[5638,'EMC104150','R6.1.155'],
+[5639,'EMC104151','R6.1.154'],
+[5640,'EMC104152','R6.1.153'],
+[5641,'EMC104153','R6.1.152'],
+[5642,'EMC104154','R6.1.151'],
+[5643,'EMC104155','R6.1.150'],
+[5644,'EMC104156','R6.1.149'],
+[5645,'EMC104157','R6.1.148'],
+[5646,'EMC104158','R6.1.147'],
+[5647,'EMC104159','R6.1.145'],
+[5648,'EMC104160','R6.1.144'],
+[5649,'EMC104161','R6.1.181'],
+[5650,'EMC104162','R6.1.180'],
+[5651,'EMC104163','R6.1.178'],
+[5652,'EMC104164','R6.1.177'],
+[5653,'EMC104165','R6.1.176'],
+[5654,'EMC104166','R6.1.171'],
+[5655,'EMC104167','R6.1.172'],
+[5656,'EMC104168','R6.1.170'],
+[5657,'EMC104169','R6.1.163'],
+[5658,'EMC104170','R6.1.162'],
+[5659,'EMC104171','R6.1.161'],
+[5660,'EMC104172','R6.1.166'],
+[5661,'EMC104173','R6.1.165'],
+[5662,'EMC104174','R6.1.164'],
+[5663,'EMC104175','R6.1.169'],
+[5664,'EMC104176','R6.1.168'],
+[5665,'EMC104177','R6.1.167'],
+[5666,'EMC104178','R6.1.159'],
+[5667,'EMC104179','8B.AULA3'],
+[5668,'EMC104180','7B.AULA3'],
+[5669,'EMC104181','6B.AULA3'],
+[5670,'EMC104182','4B.AULA3'],
+[5671,'EMC104183','3B.AULA3'],
+[5672,'EMC104184','2B.AULA3'],
+[5673,'CDB110130','P2-D33'],
+[5680,'CDB110140','P2-D37'],
+[5692,'CDB110139','P2-D40'],
+[5737,'PPB128098',''],
+[5738,'PPB128098',''],
+[5739,'PPB128098',''],
+[5740,'PPB128098',''],
+[5741,'PPB128098',''],
+[5742,'PPB128098',''],
+[5743,'PPB128098',''],
+[5744,'PPB128098',''],
+[5745,'PPB128098',''],
+[5746,'PPB128098',''],
+[5747,'PPB128098',''],
+[5748,'PPB128098',''],
+[5749,'PPB128098',''],
+[5750,'PPB128098',''],
+[5751,'PPB128098',''],
+[5752,'PPB128098',''],
+[5753,'PPB128098',''],
+[5754,'PPB128098',''],
+[5755,'PPB128098',''],
+[5756,'PPB128098',''],
+[5757,'PPC128099',''],
+[5758,'PPC128099',''],
+[5759,'PPC128099',''],
+[5760,'PPC128099',''],
+[5761,'PPC128099',''],
+[5762,'PPC128099',''],
+[5763,'PPC128099',''],
+[5764,'PPC128099',''],
+[5765,'PPC128099',''],
+[5766,'PPC128099',''],
+[5767,'PPC128099',''],
+[5768,'PPC128099',''],
+[5769,'PPC128099',''],
+[5770,'PPC128099',''],
+[5771,'PPC128099',''],
+[5772,'PPC128099',''],
+[5773,'PPC128099',''],
+[5774,'PPC128099',''],
+[5775,'PPC128099',''],
+[5776,'PPC128099',''],
+[5777,'PPC128099',''],
+[5868,'MLC148170','R0.P3.13'],
+[5869,'MLC148171','R0.B.17'],
+[5870,'MLC148172','R0.P3.11'],
+[5871,'MLC148173','R0.B.12'],
+[5872,'MLC148174','R0.P3.9'],
+[5873,'MLC148175','R0.P3.7'],
+[5874,'MLC148176','R0.P3.8'],
+[5875,'MLC148177','R0.P3.6'],
+[5876,'MLC148178','R0.P3.5'],
+[5877,'MLC148179','R0.P3.3'],
+[5878,'MLC148180','R0.P3.4'],
+[5879,'MLC148181','R0.P3.2'],
+[5880,'MLC148182','R0.P3.1'],
+[5881,'MLC148183','R0.B.18'],
+[5882,'MLC148184','R0.P3.10'],
+[5883,'MLC148185','R0.B.16'],
+[5884,'MLC148186','R0.B.15'],
+[5885,'FIP109050','INF-21'],
+[5886,'FIP109051','INF-20'],
+[5887,'FIP109052',''],
+[5888,'FIP109053','INF-16'],
+[5889,'FIP109054','INF-66'],
+[5890,'FIP109055','INF-68'],
+[5891,'FIP109056','INF-13'],
+[5892,'FIP109057','INF-69'],
+[5893,'FIP109058','INF-12'],
+[5894,'FIP109059','INF-72'],
+[5895,'FIP109060','INF-71'],
+[5896,'FIP109061',''],
+[5897,'FIP109062','INF-70'],
+[5898,'FIP109063','INF-14'],
+[5899,'FIP109064','INF-67'],
+[5900,'FIP109065','INF-65'],
+[5901,'FIP109066','INF-15'],
+[5902,'FIP109067',''],
+[5904,'FIP109069','INF-22'],
+[5905,'FIP109070','INF-25'],
+[5906,'FIP109071','INF-26'],
+[5907,'FIP109072','INF-17'],
+[5908,'FIP109073',''],
+[5909,'FIP109074',''],
+[5910,'FIP109075','INF-75'],
+[5934,'POU128060','PC3C-18'],
+[5935,'POA128061',''],
+[5936,'POA128062',''],
+[5937,'POA128063',''],
+[5938,'POA128244',''],
+[5939,'POA128065',''],
+[5940,'POA128066',''],
+[5941,'POA128067','PC1.29'],
+[5942,'POA128068',''],
+[5944,'POA128071','33'],
+[5945,'POA128072',''],
+[5946,'POA128073',''],
+[5947,'POA128074',''],
+[5949,'POA128076',''],
+[5950,'POA128077',''],
+[5951,'POA128078',''],
+[5952,'POA128079',''],
+[5954,'POA128231',''],
+[5955,'POA128232','PC1.23'],
+[5956,'POA128233',''],
+[5957,'POA128234',''],
+[5958,'POA128235',''],
+[5959,'POA128236',''],
+[5960,'POA128237',''],
+[5961,'POA128238',''],
+[5962,'POA128240',''],
+[5963,'POA128241',''],
+[5964,'POA128242',''],
+[5965,'POA128243',''],
+[5968,'POC128080','PC1.80'],
+[5969,'POC128081','PC1.81'],
+[5970,'POC128082','PC1.82'],
+[5972,'POC128084','PC1.84'],
+[5973,'POC128085','PC1.85'],
+[5974,'POC128086','PC1.86'],
+[5975,'POC128087','PC1.88'],
+[5976,'POC128088','PC1.89'],
+[5977,'POC128089','PC1.70'],
+[5978,'POC128090','PC1.64'],
+[5979,'POC128091','PC1.65'],
+[5980,'POC128092','PC1.62'],
+[5981,'POC128093',''],
+[5982,'POC128094','PC1.61'],
+[5983,'POC128095','PC1.56'],
+[5984,'POC128096','PC1.49'],
+[5985,'POC128097','PC1.50'],
+[6017,'PSD114121','PA-C16'],
+[6019,'PSD114123','PA-C14'],
+[6020,'PSD114124','PA-C12'],
+[6021,'PSD114125','PA-C13'],
+[6022,'PSD114126','PA-C11'],
+[6023,'PSD114127','PA-C10'],
+[6024,'PSD114128','PA-C9'],
+[6025,'PSD114129','PA-C8'],
+[6027,'PSD114131','PA-C6'],
+[6028,'PSD114132','PA-B13'],
+[6030,'PSD114134','PA-B17'],
+[6031,'PSD114135','PA-B19'],
+[6032,'PSD114136','PA-B21'],
+[6033,'PSD114137','PA-B23'],
+[6034,'PSD114138','PA-C1'],
+[6035,'PSD114139','PA-C3'],
+[6036,'PSD114140','PA-C5'],
+[6037,'PSD114141','PA-C4'],
+[6038,'PSD114142','PA-C2'],
+[6039,'PSD114143','PA-B24'],
+[6040,'PSD114144','PA-B22'],
+[6041,'PSD114145','PA-B20'],
+[6042,'PSD114146','PA-B18'],
+[6043,'PSD114147','PA-B16'],
+[6044,'PSD114148','PA-B14'],
+[6045,'PSD114149','PA-B12'],
+[6046,'PSD114150','PA-B11'],
+[6047,'PSD114151','PA-B10'],
+[6048,'PSD114152','PA-B9'],
+[6049,'PSD114153','PA-B8'],
+[6050,'PSD114154','PA-B7'],
+[6051,'PSD114155','PA-B6'],
+[6052,'PSD114156','PA-B5'],
+[6053,'PSD114157','PA-B4'],
+[6054,'PSD114158','PA-B3'],
+[6055,'PSD114159','PA-B2'],
+[6056,'PSD114160','PA-B1'],
+[6057,'CMD127050','ADP1 DATOS16-8'],
+[6058,'CMD127051','4.10'],
+[6059,'CMD127052','10.10'],
+[6060,'CMD127053','10.11'],
+[6062,'CMD127055','10.9'],
+[6063,'CMD127056','4.11'],
+[6064,'CMD127057','4.7'],
+[6065,'CMD127058','10.7'],
+[6066,'CMD127059','10.8'],
+[6067,'CMD127060','4.6'],
+[6069,'CMD127062','4.8'],
+[6070,'CMD127063','10.5'],
+[6071,'CMD127064','4.4'],
+[6072,'CMD127065','10.4'],
+[6073,'CMD127066','4.5'],
+[6074,'CMD127067','4.3'],
+[6075,'CMD127068','10.3'],
+[6076,'CMD127069','10.2'],
+[6077,'CMD127070','4.1'],
+[6078,'CMD127071','10.1'],
+[6079,'CMD127072','4.2'],
+[6080,'CMD127073','3.24'],
+[6081,'CMD127074','9.24'],
+[6238,'FAC106107','AULA-PTA-1-34'],
+[6239,'FAC106108','AULA-PTA-1-35'],
+[6240,'FAC106109','AULA-PTA-1-36'],
+[6241,'FAC106110','AULA-PTA-1-37'],
+[6242,'FAC106111','AULA-PTA-1-39'],
+[6243,'FAC106112','AULA-PTA-1-38'],
+[6244,'FAC106113','AULA-PTA-1-40'],
+[6245,'FAC106114','AULA-PTA-1-42'],
+[6246,'FAC106115','AULA-PTA-1-41'],
+[6247,'FAC106116','AULA-PTA-1-43'],
+[6248,'FAC106117','AULA-PTA-1-44'],
+[6249,'FAC106118','DIRECTO'],
+[6250,'FAC106119','46'],
+[6251,'FAC106120','47'],
+[6252,'FAC106121','48'],
+[6253,'FAC106122','AULA-PTA-1-49'],
+[6254,'FAC106123','AULA-PTA-1-50'],
+[6255,'FAC106124','AULA-PTA-1-51'],
+[6256,'FAC106125','AULA-PTA-1-52'],
+[6257,'FAC106126','AULA-PTA-1-53'],
+[6258,'FAC106127','AULA-PTA-1-54'],
+[6259,'FAC106128','AULA-PTA-1-55'],
+[6260,'FAC106129','AULA-PTA-1-56'],
+[6261,'FAC106130','AULA-PTA-1-57'],
+[6262,'FAC106131','AULA-PTA-1-58'],
+[6263,'FAC106132','AULA-PTA-1-59'],
+[6264,'FAC106133','AULA-PTA-1-60'],
+[6265,'FAC106134','AULA-PTA-1-61'],
+[6266,'FAC106135','AULA-PTA-1-62'],
+[6267,'FAC106136','AULA-PTA-1-63'],
+[6268,'FAC106137','AULA-PTA-1-64'],
+[6273,'ENE122210','R2.4.16'],
+[6274,'ENB122253','R1.2.055'],
+[6275,'END123081','R1.3.037'],
+[6279,'ENE122203','R2.4.2'],
+[6301,'ENE122213','R2.4.24'],
+[6308,'ENB122245','R1.2.053'],
+[6309,'ENB122246','R1.2.050'],
+[6310,'ENB122247','R1.2.049'],
+[6313,'ENB122250','R1.2.052'],
+[6315,'ENB122252','R1.2.054'],
+[6317,'ENC123050','R1.3.028'],
+[6319,'ENC123052','R1.3.029'],
+[6320,'ENC123053','R1.3.027'],
+[6321,'ENC123054','R1.3.059'],
+[6322,'ENC123055','R1.3.024'],
+[6323,'ENC123056','R1.3.061'],
+[6324,'ENC123057','R1.3.026'],
+[6325,'ENC123058','R1.3.025'],
+[6326,'ENC123059','R1.3.018'],
+[6327,'ENC123060','R1.3.021'],
+[6328,'ENC123061','R1.3.023'],
+[6329,'ENC123062','R1.3.022'],
+[6330,'ENC123063','R1.3.060'],
+[6331,'ENC123064','R1.3.014'],
+[6332,'ENC123065','R1.3.017'],
+[8935,'ENC123066','R1.3.015'],
+[6334,'ENC123067','R1.3.016'],
+[6335,'ENC123068','R1.3.019'],
+[6336,'ENC123069','R1.3.012'],
+[6337,'ENC123070','R1.3.011'],
+[6338,'ENC123071','R1.3.009'],
+[6339,'ENC123072','R1.3.013'],
+[6340,'ENC123073','R1.3.010'],
+[6341,'END123075','R1.3.032'],
+[6342,'END123076','R1.3.031'],
+[6343,'END123077','R1.3.033'],
+[6344,'END123078','R1.3.034'],
+[6345,'END123079','R1.3.038'],
+[6346,'END123080','R1.3.036'],
+[6348,'END123082','R1.3.039'],
+[6349,'END123083','R1.3.041'],
+[6350,'END123084','R1.3.045'],
+[6352,'END123086','R1.3.043'],
+[6353,'END123087','R1.3.042'],
+[6354,'END123088','R1.3.040'],
+[6355,'END123089','R1.3.046'],
+[6356,'END123090','R1.3.048'],
+[6357,'END123091','R1.3.047'],
+[6358,'END123092','R1.3.049'],
+[6359,'END123093','R1.3.050'],
+[6360,'END123094','R1.3.051'],
+[6361,'END123095','R1.3.052'],
+[6362,'END123096','R1.3.053'],
+[6363,'END123097','R1.3.054'],
+[6364,'END123098','R1.3.055'],
+[6366,'ENE122201','R2.4.6'],
+[8936,'ENE122202','R2.4.4'],
+[6369,'ENE122204','R2.4.1'],
+[6370,'ENE122205','R2.4.12'],
+[6371,'ENE122206','R2.4.10'],
+[6372,'ENE122207','R2.4.8'],
+[6373,'ENE122208','R2.4.7'],
+[6374,'ENE122209','R2.4.18'],
+[6376,'ENE122211','R2.4.14'],
+[6377,'ENE122212','R2.4.13'],
+[6379,'ENE122214','R2.4.22'],
+[6380,'ENE122215','R2.4.20'],
+[6381,'ENE122216','R2.4.19'],
+[6382,'TRB135053','R2.0.19'],
+[6383,'TRB135060','R2.0.9'],
+[6384,'TRB135059','R2.0.12'],
+[6386,'TRB135058','R2.0.11'],
+[6387,'TRB135057','R2.0.10'],
+[6389,'TRB135061','R2.0.16'],
+[6391,'TRB135062','R2.0.14'],
+[6395,'TRB135063','R2.0.15'],
+[6396,'TRB135064','R2.0.13'],
+[6398,'TRB135065','R2.0.3'],
+[6399,'TRB135066','R2.0.4'],
+[6400,'TRB135067','R2.0.2'],
+[6401,'TRB135068','R2.0.1'],
+[6402,'TRB135069','R2.0.5'],
+[6403,'TRB135070','R2.0.6'],
+[6404,'TRB135071','R2.0.7'],
+[6405,'TRB135072','R2.0.8'],
+[6406,'EMB104033','R6.1.194'],
+[6407,'EMB104034','R6.1.193'],
+[6408,'EMB104035','R6.1.192'],
+[6409,'EMB104036','R6.1.190'],
+[6410,'EMB104037','R6.1.189'],
+[6411,'EMB104038','R6.1.188'],
+[6412,'EMB104039','R6.1.185'],
+[6413,'EMB104040','R6.1.186'],
+[6414,'EMB104041','R6.1.187'],
+[6415,'EMB104042','R6.1.182'],
+[6416,'EMB104043','R6.1.183'],
+[6417,'EMB104044','R6.1.184'],
+[6418,'EMB104045','R6.1.219'],
+[6419,'EMB104046','R6.1.218'],
+[6420,'EMB104047','R6.1.217'],
+[6421,'EMB104048','R6.1.216'],
+[6422,'EMB104049','R6.1.215'],
+[6423,'EMB104050','R6.1.214'],
+[6424,'EMB104051','R6.1.213'],
+[6425,'EMB104052','R6.1.212'],
+[6426,'EMB104053','R6.1.206'],
+[6427,'EMB104054','R6.1.205'],
+[6428,'EMB104055','R6.1.201'],
+[6429,'EMB104056','R6.1.200'],
+[6430,'EMB104057','R6.1.199'],
+[6431,'EMB104058','R6.1.203'],
+[6432,'EMB104059','R6.1.204'],
+[6433,'EMB104060','R6.1.202'],
+[6434,'EMB104061','R6.1.210'],
+[6435,'EMB104062','R6.1.209'],
+[6436,'EMB104063','R6.1.197'],
+[6470,'ENP1220011',''],
+[6471,'ENP1220012',''],
+[6472,'ENP1220013',''],
+[6473,'ENP1220014',''],
+[6474,'ENP1220015',''],
+[6475,'ENP1220016',''],
+[6476,'ENP1220017',''],
+[6477,'ENP1220018',''],
+[6478,'ENP1220019',''],
+[6479,'ENP12200110',''],
+[6480,'ENP12200111',''],
+[6481,'ENP12200112',''],
+[6482,'ENP12200113',''],
+[6483,'ENP12200114',''],
+[6484,'ENP12200115',''],
+[6485,'ENP12200116',''],
+[6486,'ENP12200117',''],
+[6487,'ENP12200118',''],
+[6488,'ENP12200119',''],
+[6489,'ENP12200120',''],
+[6490,'ENP12200121',''],
+[6491,'ENP12200122',''],
+[6492,'ENP12200123',''],
+[6493,'ENP12200124',''],
+[6494,'ENP12200125',''],
+[6495,'ENP12200126',''],
+[6496,'ENP12200127',''],
+[6497,'ENP12200128',''],
+[6498,'ENP12200129',''],
+[6499,'ENP12200130',''],
+[6500,'ENP12200131',''],
+[6501,'ENP12200132',''],
+[6502,'ENP12200133',''],
+[6503,'ENP12200134',''],
+[6504,'ENP12200135',''],
+[6505,'ENP12200136',''],
+[6506,'ENP12200137',''],
+[6507,'ENP12200138',''],
+[6508,'ENP12200139',''],
+[6509,'ENP12200140',''],
+[6526,'FIS108103','INF-6'],
+[6527,'FIS108090','INF-5'],
+[6528,'FIS108093','INF-4'],
+[6529,'FIS108092','INF-3'],
+[6530,'FIS108096','INF-2'],
+[6531,'FIS108102','INF-1'],
+[6532,'FIS108099',''],
+[6533,'FIS108098',''],
+[6534,'FIS108100','10'],
+[6535,'FIS108101','D9'],
+[6539,'ASD136121','R1.2.20'],
+[6540,'ASD136122','R1.2.19'],
+[6541,'ASD136123','R1.2.18'],
+[6542,'ASD136124','R1.2.17'],
+[6543,'ASD136125','R1.2.16'],
+[6544,'ASD136126','R1.2.15'],
+[6545,'ASD136127','R1.2.14'],
+[6547,'ASD136129','R1.2.11'],
+[6548,'ASD136130','R1.2.10'],
+[6549,'ASD136131','R1.2.9'],
+[6550,'ASD136132','R1.2.8'],
+[6551,'ASD136133','R1.2.6'],
+[6552,'ASD136134','R1.2.5'],
+[6553,'ASD136135','R1.2.4'],
+[6554,'ASD136136','R1.2.52'],
+[6555,'ASD136137','R1.2.51'],
+[6556,'ASD136138','R1.2.50'],
+[6557,'ASD136139','R1.2.47'],
+[6558,'ASD136140','R1.2.45'],
+[6559,'ASD136141','R1.2.42'],
+[6560,'ASD136142','R1.2.41'],
+[6561,'ASD136143','R1.2.40'],
+[6562,'ASD136144','R1.2.39'],
+[6563,'ASD136145','R1.2.36'],
+[6564,'ASD136146','R1.2.34'],
+[6565,'ASD136147','R1.2.31'],
+[6566,'ASD136148','R1.2.30'],
+[6567,'ASD136149','R1.2.29'],
+[6568,'ASD136150','R1.2.23'],
+[6569,'ASE136161','R1.3.18'],
+[6570,'ASE136162','R1.3.17'],
+[6571,'ASE136163','R1.3.16'],
+[6572,'ASE136164','R1.3.15'],
+[6573,'ASE136165','R1.3.13'],
+[6576,'ASE136168','R1.3.10'],
+[6577,'ASE136169','R1.3.9'],
+[6578,'ASE136170','R1.3.8'],
+[6579,'ASE136171','R1.3.6'],
+[6580,'ASE136172','R1.3.5'],
+[6581,'ASE136173','R1.3.4'],
+[6583,'ASE136175','R1.3.2'],
+[6585,'ASE136177','R1.3.38'],
+[6586,'ASE136178','R1.3.36'],
+[6587,'ASE136179','R1.3.34'],
+[6588,'ASE136180','R1.3.33'],
+[6589,'ASE136181','R1.3.32'],
+[6590,'ASE136182','R1.3.31'],
+[6591,'ASE136183','R1.3.30'],
+[6592,'ASE136184','R1.3.29'],
+[6593,'ASE136185','R1.3.28'],
+[6595,'ASE136187','R1.3.25'],
+[6598,'ASE136190','R1.3.19'],
+[6599,'ASE136191','R1.3.40'],
+[6600,'MEE124121','R1.01.86'],
+[6601,'MEE124122',''],
+[6602,'MEK125005','R2.00.43'],
+[6603,'MEE124124',''],
+[6604,'MEE124125',''],
+[6605,'MEK125006','R2.00.44'],
+[6606,'MEE124127',''],
+[6607,'MEE124128',''],
+[6608,'MEK125003','R2.00.45'],
+[6609,'MEE124130',''],
+[6610,'MEE124131',''],
+[6611,'MEE124132',''],
+[6612,'MEE124133',''],
+[6613,'MEE124134',''],
+[6614,'MEE124135',''],
+[6615,'MEE124136',''],
+[6616,'MEE124137',''],
+[6617,'MEE124138',''],
+[6618,'MEE124139',''],
+[6619,'MEE124140',''],
+[6620,'MEE124141',''],
+[6621,'MEE124142',''],
+[6622,'MEE124143',''],
+[6623,'MEE124144',''],
+[6624,'MEE124145',''],
+[6625,'MEE124146',''],
+[6626,'MEE124147',''],
+[6627,'MEE124148',''],
+[6628,'MEE124149','R1.01.50'],
+[6629,'MEE124150',''],
+[6630,'MEE124151',''],
+[6631,'MEF124161','R5.01.08'],
+[6632,'MEF124162','R5.1.20'],
+[6633,'MEF124163',''],
+[6634,'MEF124164',''],
+[6635,'MEF124165',''],
+[6636,'MEF124166',''],
+[6637,'MEF124167',''],
+[6638,'MEF124168',''],
+[6639,'MEF124169',''],
+[6640,'MEF124170',''],
+[6641,'MEF124171',''],
+[6642,'MEF124172',''],
+[6643,'MEF124173',''],
+[6644,'MEF124174',''],
+[6645,'MEF124175',''],
+[6646,'MEF124176',''],
+[6647,'MEF124177',''],
+[6648,'MEF124178',''],
+[6649,'MEF124179',''],
+[6650,'MEF124180','R5.1.15'],
+[6651,'MEF124181',''],
+[6652,'MEG124191','R2.00.17'],
+[6653,'MEG124192',''],
+[6654,'MEK125004','R2.00.46'],
+[6655,'MEG124194',''],
+[6656,'MEG124195','R2.00.19'],
+[6657,'MEK125007','R2.00.47'],
+[6658,'MEG124197','R2.00.21'],
+[6659,'MEG124198',''],
+[6660,'MEK125008','R2.00.48'],
+[6661,'MEG124200','R2.00.36'],
+[6662,'MEG124201','R2.00.22'],
+[6663,'MEK125001','R2.00.49'],
+[6664,'MEG124203',''],
+[6665,'MEG124204','R2.00.37'],
+[6666,'MEK125002','R2.00.50'],
+[6667,'MEG124206','R2.00.39'],
+[6668,'MEG124207',''],
+[6669,'MEK125013','R2.00.51'],
+[6670,'MEG124209',''],
+[6671,'MEG124210','R2.00.40'],
+[6672,'MEK125014','R2.00.52'],
+[6673,'MEG124212','R2.00.42'],
+[6675,'MEK125011','R2.00.53'],
+[6676,'MEG124215',''],
+[6677,'MEH125151','R4.0.7'],
+[6678,'MEH125152','R4.0.56'],
+[6679,'MEK125012','R2.00.54'],
+[6680,'MEH125154','R4.0.42'],
+[6681,'MEK125015','R2.00.55'],
+[6682,'MEH125156','R4.0.12'],
+[6683,'MEK125016','R2.00.56'],
+[6684,'MEK125009','R2.00.57'],
+[6685,'MEH125159','R4.0.53'],
+[6686,'MEK125010','R2.00.58'],
+[6687,'MEH125161','R4.0.40'],
+[6688,'MEK125021','R2.00.59'],
+[6689,'MEH125163','R4.0.13'],
+[6690,'MEH125164','R4.0.52'],
+[6691,'MEK125022','R2.00.60'],
+[6692,'MEH125166','R4.0.38'],
+[6693,'MEK125019','R2.00.61'],
+[6694,'MEH125168','R4.0.16'],
+[6695,'MEK125020','R2.00.62'],
+[6696,'MEK125023','R2.00.63'],
+[6697,'MEH125170','R4.0.50'],
+[6698,'MEK125024','R2.00.64'],
+[6699,'MEH125172','R4.0.36'],
+[6700,'MEK125017','R2.00.65'],
+[6701,'MEH125174','R4.0.20'],
+[6702,'MEH125176','R4.0.48'],
+[6703,'MEK125018','R2.00.66'],
+[6704,'MEH125178','R4.0.33'],
+[6705,'MEK125029','R2.00.67'],
+[6706,'MEH125180','R4.0.21'],
+[6707,'MEK125030','R2.00.68'],
+[6708,'MEK125027','R2.00.69'],
+[6709,'MEH125183','R4.0.46'],
+[6710,'MEK125028','R2.00.70'],
+[6711,'MEH125185','R4.0.31'],
+[6712,'MEK125031','R2.00.71'],
+[6713,'MEH125187','R4.0.23'],
+[6714,'MEH125188','R4.0.43'],
+[6715,'MEK125032','R2.00.72'],
+[6716,'MEH125190','R4.0.29'],
+[6717,'MEK125025','R2.00.73'],
+[6718,'MEH125192','R4.0.27'],
+[6719,'MEK125026','R2.00.74'],
+[6720,'MEI125201','R6.0.101'],
+[6721,'MEI125202','R6.0.73'],
+[6722,'MEI125203','R6.0.74'],
+[6723,'MEI125204','R6.0.75'],
+[6724,'MEI125205','R6.0.76'],
+[6725,'MEI125206','R6.0.95'],
+[6726,'MEI125241','R6.0.78'],
+[6727,'MEI125208','R6.0.93'],
+[6728,'MEI125209','R6.0.94'],
+[6729,'MEI125210','R6.0.71'],
+[6730,'MEI125211','R6.0.72'],
+[6731,'MEI125212','R6.0.70'],
+[6732,'MEI125213','R6.0.69'],
+[6733,'MEI125214','R6.0.92'],
+[6734,'MEI125215','R6.0.91'],
+[6735,'MEI125216','R6.0.90'],
+[6736,'MEI125217','R6.0.89'],
+[6737,'MEI125218','R6.0.65'],
+[6738,'MEI125219','R6.0.66'],
+[6739,'MEI125220','R6.0.68'],
+[6740,'MEI125221','R6.0.67'],
+[6741,'MEI125222','R6.0.88'],
+[6742,'MEI125223','R6.0.85'],
+[6743,'MEI125224','R6.0.86'],
+[6744,'MEI125225','R6.0.87'],
+[6745,'MEI125226','R6.0.62'],
+[6746,'MEI125227','R6.0.64'],
+[6747,'MEI125228','R6.0.61'],
+[6748,'MEI125229','R6.0.63'],
+[6749,'MEI125230','R6.0.82'],
+[6750,'MEI125231','R6.0.81'],
+[6751,'MEI125232','R6.0.83'],
+[6752,'MEI125233','R6.0.84'],
+[6753,'MEI125234','R6.0.60'],
+[6754,'MEI125235','R6.0.58'],
+[6755,'MEI125236','R6.0.59'],
+[6756,'MEI125237','R6.0.57'],
+[6757,'MEI125238','R6.0.80'],
+[6758,'MEI125239','R6.0.79'],
+[6759,'MEI125240','R6.0.77'],
+[6760,'MEI125207','R6.0.96'],
+[6761,'EMF105090','R6.1.66'],
+[6762,'EMF105061','R6.1.88'],
+[6763,'EMF105062','R6.1.86'],
+[6764,'EMF105063','R6.1.87'],
+[6765,'EMF105064','R6.1.84'],
+[6766,'EMF105065','R6.1.85'],
+[6767,'EMF105066','R6.1.82'],
+[6768,'EMF105067','R6.1.83'],
+[6769,'EMF105068','R6.1.81'],
+[6770,'EMF105069','R6.1.79'],
+[6771,'EMF105070','R6.1.80'],
+[6772,'EMF105071','R6.1.77'],
+[6773,'EMF105072','R6.1.78'],
+[6774,'EMF105073','R6.1.75'],
+[6775,'EMF105074','R6.1.76'],
+[6776,'EMF105075','R6.1.53'],
+[6777,'EMF105076','R6.1.52'],
+[6778,'EMF105077','R6.1.59'],
+[6779,'EMF105078','R6.1.58'],
+[6780,'EMF105079','R6.1.54'],
+[6781,'EMF105080','R6.1.56'],
+[6782,'EMF105081','R6.1.55'],
+[6783,'EMF105082','R6.1.57'],
+[6784,'EMF105083','R6.1.60'],
+[6785,'EMF105084','R6.1.61'],
+[6786,'EMF105085','R6.1.62'],
+[6787,'EMF105086','R6.1.65'],
+[6788,'EMF105087','R6.1.64'],
+[6789,'EMF105088','R6.1.68'],
+[6790,'EMF105089','R6.1.67'],
+[6791,'EMF105060','R6.1.89'],
+[6792,'EMF105091','R6.1.70'],
+[6793,'EMF105092','R6.1.71'],
+[6794,'EMF105093','R6.1.69'],
+[6795,'EMF105094','R6.1.73'],
+[6796,'EMF105095','R6.1.74'],
+[6797,'EMF105096','R6.1.72'],
+[6798,'EMG105097','R6.1.51'],
+[6799,'EMG105098','R6.1.50'],
+[6800,'EMG105099','R6.1.49'],
+[6801,'EMG105100','R6.1.48'],
+[6802,'EMG105101','R6.1.47'],
+[6803,'EMG105102','R6.1.46'],
+[6804,'EMG105103','R6.1.45'],
+[6805,'EMG105104','R6.1.44'],
+[6806,'EMG105105','R6.1.43'],
+[6807,'EMG105106','R6.1.42'],
+[6808,'EMG105107','R6.1.41'],
+[6809,'EMG105108','R6.1.40'],
+[6810,'EMG105109','R6.1.39'],
+[6811,'EMG105110','R6.1.38'],
+[6812,'EMG105111','R6.1.36'],
+[6813,'EMG105112','R6.1.34'],
+[6814,'EMG105113','R6.1.32'],
+[6815,'EMG105114','R6.1.30'],
+[6816,'EMG105115','R6.1.28'],
+[6817,'EMG105116','R6.1.26'],
+[6818,'EMG105117','R6.1.24'],
+[6819,'EMG105118','R6.1.22'],
+[6820,'EMG105119','R6.1.20'],
+[6821,'EMG105120','R6.1.18'],
+[6822,'EMG105121','R6.1.16'],
+[6823,'EMG105122','R6.1.14'],
+[6824,'EMG105136','R6.1.2'],
+[6825,'EMG105124','R6.1.37'],
+[6826,'EMG105125','R6.1.35'],
+[6827,'EMG105126','R6.1.33'],
+[6828,'EMG105127','R6.1.31'],
+[6829,'EMG105128','R6.1.29'],
+[6830,'EMG105129','R6.1.27'],
+[6831,'EMG105130','R6.1.25'],
+[6832,'EMG105131','R6.1.23'],
+[6833,'EMG105132','R6.1.21'],
+[6834,'EMG105133','R6.1.19'],
+[6836,'EMG105135','R6.1.15'],
+[6837,'EMG105123','R6.1.1'],
+[6838,'EMG105137','R6.1.3'],
+[6839,'EMG105138','R6.1.4'],
+[6841,'EMG105140','R6.1.6'],
+[6842,'EMG105141','R6.1.7'],
+[6843,'EMG105142','R6.1.8'],
+[6844,'EMG105143','R6.1.9'],
+[6845,'EMG105144','R6.1.10'],
+[6846,'EMG105145','R6.1.11'],
+[6847,'EMG105146','R6.1.12'],
+[6848,'EMG105147','R6.1.13'],
+[6849,'MEP12500100',''],
+[6850,'MEP12500101',''],
+[6851,'MEP12500102',''],
+[6852,'MEP12500103',''],
+[6853,'MEP12500104',''],
+[6854,'MEP12500105',''],
+[6855,'MEP12500106',''],
+[6856,'MEP12500107',''],
+[6857,'MEP12500108',''],
+[6858,'MEP12500109',''],
+[6859,'MEP12500110',''],
+[6860,'MEP12500111',''],
+[6861,'MEP12500112',''],
+[6862,'MEP12500113',''],
+[6863,'MEP12500114',''],
+[6864,'MEP12500115',''],
+[6865,'MEP12500116',''],
+[6866,'MEP12500117',''],
+[6867,'MEP12500118',''],
+[6868,'MEP12500119',''],
+[6870,'PSC114105','AU-INF-2'],
+[6872,'PSC114107','AU-INF-4'],
+[6874,'PSC114109','AU-INF-6'],
+[6876,'PSC114111','AU-INF-8'],
+[6877,'PSC114112','AU-INF-9'],
+[6878,'PSC114113','AU-INF-10'],
+[6879,'PSC114114','AU-INF-11'],
+[6881,'PSC114116','AU-INF-13'],
+[6882,'PSC114117','AU-INF-14'],
+[6883,'PSC114118','AU-INF-15'],
+[6940,'EPB155100','P3-8'],
+[6942,'EPB155101','P3-7'],
+[6943,'EPB155102','P3-9'],
+[6944,'EPB155103','P3-10'],
+[6945,'CMD127061','10.6'],
+[6947,'EPB155104','P3-15'],
+[6948,'EPB155105','P3-18'],
+[6949,'EPB155106','P3-17'],
+[6950,'EPB155107','P3-22'],
+[6951,'EPB155108','P3-23'],
+[6952,'EPB155109','P3-25'],
+[6954,'EPB155110','P3-26'],
+[6955,'EPB155111','P3-27'],
+[6956,'EPB155112','P3-28'],
+[6957,'CMD127054','4.9'],
+[6958,'EPB155113','P3-29'],
+[6959,'EPB155114','P3-30'],
+[6960,'EPB155115','P3-31'],
+[6961,'EPB155116','P3-32'],
+[6962,'EPB155117','P3-33'],
+[6963,'EPB155118','P3-34'],
+[6964,'EPB155119','P3-36'],
+[6965,'DED121010','R0.0.52'],
+[6966,'DED121011','R0.0.51'],
+[6967,'DED121012','R0.0.50'],
+[6968,'DED121013','R0.0.49'],
+[6969,'DED121014','R0.0.45'],
+[6970,'DED121015','R0.0.44'],
+[6971,'DED121016','R0.0.43'],
+[6972,'DED121017','R0.0.48'],
+[6973,'DED121018','R0.0.47'],
+[6974,'DED121019','R0.0.46'],
+[6975,'DED121020','R0.0.42'],
+[6976,'DED121021','R0.0.41'],
+[6977,'DED121022','R0.0.40'],
+[6978,'DEE121030','R0.S.M1'],
+[6979,'DEE121031','R0.S.18'],
+[6980,'DEE121032','R0.S.15'],
+[6981,'DEE121033','R0.S.14'],
+[6982,'DEE121034','R0.S.13'],
+[6983,'DEE121035','R0.S.10'],
+[6984,'DEE121036','R0.S.9'],
+[6985,'DEE121037','R0.S.8'],
+[6986,'DEE121038','R0.S.7'],
+[6987,'DEE121039','R0.S.49'],
+[6988,'DEE121040','R0.S.48'],
+[6989,'DEE121041','R0.S.47'],
+[6990,'DEE121042','R0.S.46'],
+[6991,'DEE121043','R0.S.54'],
+[6992,'DEE121044','R0.S.53'],
+[6993,'DEE121045','R0.S.52'],
+[6994,'DEE121046','R0.S.51'],
+[6995,'DEE121047','R0.S.59'],
+[6996,'DEE121048','R0.S.58'],
+[6997,'DEE121049','R0.S.57'],
+[6998,'DEE121050','R0.S.56'],
+[6999,'DEE121051','R0.S.4'],
+[7000,'DEE121052','R0.S.3'],
+[7001,'DEE121053','R0.S.2'],
+[7002,'DEE121054','R0.S.1'],
+[7003,'CDB110144','P2-D41'],
+[7004,'CDB110120','P2-D26'],
+[7005,'CDB110121','P2-D27'],
+[7006,'CDB110122','P2-D28'],
+[7007,'CDB110123','P2-D29'],
+[7008,'CDB110124','P2-D30'],
+[7009,'CDB110125','P2-D31'],
+[7010,'CDB110126','P2-D56'],
+[7011,'CDB110127','P2-D53'],
+[7012,'CDB110128','P2-D55'],
+[7013,'CDB110129','P2-D54'],
+[7015,'CDB110131','P2-D34'],
+[7016,'CDB110132','P2-D36'],
+[7017,'CDB110133','P2-D35'],
+[7018,'CDB110134','P2-D32'],
+[7019,'CDB110135','P2-D59'],
+[7020,'CDB110136','P2-D58'],
+[7021,'CDB110137','P2-D60'],
+[7022,'CDB110138','P2-D57'],
+[7025,'CDB110141','P2-D38'],
+[7026,'CDB110142','P2-D39'],
+[7027,'CDB110143','P2-D42'],
+[7028,'POB128200',''],
+[7029,'POB128201',''],
+[7030,'POB128202','PC1.114'],
+[7031,'POB128203','PC1.113'],
+[7032,'POB128204','PC1.112'],
+[7033,'POB128205','PC1.111'],
+[7034,'POB128206','PC1.110'],
+[7035,'POB128207','PC1.109'],
+[7036,'POB128208','PC1.108'],
+[7037,'POB128209','PC1.107'],
+[7038,'POB128210','PC1.106'],
+[7039,'POB128211','PC1.105'],
+[7040,'POB128212','PC1.104'],
+[7041,'POB128213','PC1.52'],
+[7042,'POB128214','PC1.53'],
+[7043,'POB128215','PC1.54'],
+[7044,'POB128216','PC1.58'],
+[7045,'POB128217','PC1.59'],
+[7046,'POB128218','PC1.60'],
+[7047,'POB128219',''],
+[7048,'POB128220','PC1.66'],
+[7049,'POB128221','PC1.67'],
+[7050,'POB128249','PC1.68'],
+[7051,'TRB135051','R2.0.22'],
+[7052,'TRB135052','R2.0.21'],
+[7053,'TRB135056','R2.0.17'],
+[7056,'TRB135055','R2.0.20'],
+[7058,'TRB135054','R2.0.18'],
+[7075,'IQA126049','AE-D11.24'],
+[7076,'IQA126050','AE-V5.17'],
+[7077,'IQA126051','AE-D11.17'],
+[7078,'IQA126052','AE-V5.16'],
+[7079,'IQA126053','AE-D11.16'],
+[7080,'IQA126054','AE-V5.15'],
+[7081,'IQA126055','AE-D11.15'],
+[7082,'IQA126056','AE-V5.14'],
+[7083,'IQA126057','AE-D11.14'],
+[7084,'IQA126058','AE-V5.13'],
+[7085,'IQA126059','AE-D11.13'],
+[7086,'IQA126060','AE-V5.12'],
+[7087,'IQA126061','AE-D11.12'],
+[7088,'IQA126062','AE-V5.23'],
+[7089,'IQA126063','AE-D11.23'],
+[7090,'IQA126064','AE-V5.22'],
+[7091,'IQA126065','AE-D11.22'],
+[7092,'IQA126066','AE-V5.21'],
+[7093,'IQA126067','AE-D11.21'],
+[7094,'IQA126068','AE-V5.20'],
+[7095,'IQA126069','AE-D11.20'],
+[7096,'IQA126070','AE-V5.19'],
+[7097,'IQA126071','AE-D11.19'],
+[7098,'IQA126072','AE-D11.18'],
+[7099,'IQA126073','AE-V5.18'],
+[7100,'IQA126074','AE-V6.5'],
+[7101,'IQA126075','AE-D12.5'],
+[7102,'IQA126076','AE-V6.4'],
+[7103,'IQA126077','AE-D12.4'],
+[7104,'IQA126078','AE-V6.3'],
+[7105,'IQA126079','AE-D12.3'],
+[7106,'IQA126080','AE-V6.2'],
+[7107,'IQA126081','AE-D12.2'],
+[7108,'IQA126082','AE-V5.24'],
+[7109,'IQA126083','AE-D12.1'],
+[7110,'IQA126084','VOZ6.1'],
+[7111,'POU128100','AULA3A-3'],
+[7112,'POU128101','AULA3A-5'],
+[7113,'POU128102','AULA3A-7'],
+[7114,'POU128103','AULA3A-11'],
+[7115,'POU128104','AUALA3A-13'],
+[7116,'POU128105','AULA3A-2'],
+[7117,'POU128106','AULA3A-4'],
+[7118,'POU128107','AULA3A-6'],
+[7119,'POU128108','AULA3A-10'],
+[7120,'POU128109','AULA3A-12'],
+[7121,'POU128110','AULA3A-15'],
+[7122,'POU128111','AULA3A-19'],
+[7123,'POU128112','AULA3A-21'],
+[7124,'POU128113','AULA3B-1'],
+[7125,'POU128114','AULA3B-3'],
+[7126,'POU128115','AULA3A-16'],
+[7127,'POU128116','AULA3A-18'],
+[7128,'POU128117','AULA3A-20'],
+[7129,'POU128118','AULA3A-24'],
+[7130,'POU128119','AULA3B-4'],
+[7131,'POU128120','AULA3B-5'],
+[7132,'POU128121','AULA3B-10'],
+[7133,'POU128122','AULA3B-11'],
+[7134,'POU128123','AULA3B-15'],
+[7135,'POU128124','AULA3B-17'],
+[7136,'POU128125','AULA3B-6'],
+[7137,'POU128126','AULA3B-8'],
+[7138,'POU128127','AULA3B-9'],
+[7139,'POU128128','AULA3B-14'],
+[7140,'POU128129','AULA3B-16'],
+[7141,'POU128130','AULA3B-20'],
+[7142,'POU128131','AULA3C-1'],
+[7143,'POU128132','AULA3B-23'],
+[7144,'POU128133','AULA3C-5'],
+[7145,'POU128134','AULA3C-7'],
+[7146,'POU128135','AULA3B-19'],
+[7147,'POU128136','AULA3B-22'],
+[7148,'POU128137','AULA3B-24'],
+[7149,'POU128138','AULA3C-4'],
+[7150,'POU128139','AULA3C-6'],
+[7151,'BIE100041',''],
+[7152,'BIE100043','BC15'],
+[7153,'BIE100155','BA.13'],
+[7154,'BIE100156','BA.14'],
+[7155,'BIE100157','S3-10(BA.10)'],
+[7156,'BIE100158','BA.11'],
+[7157,'BIE100159','BA.12'],
+[7158,'BIE100160','BA.15'],
+[7159,'BIE100161','BC16'],
+[7160,'BIE100162','BA.9'],
+[7161,'BIE100163','BA.8'],
+[7162,'BIE100164','S3-6(BA.6)'],
+[7163,'BIE100165','S3-7(BA.7)'],
+[7164,'BIE100166','BA.5'],
+[7165,'BIE100167','BF7'],
+[7166,'BIE100168','S3-3(BA.3)'],
+[7167,'BIE100169','S3-4(BA.4)'],
+[7168,'FIE108160','AU4-D01'],
+[7169,'FIE108161','AU4-D07'],
+[7170,'FIE108162','AU4-D06'],
+[7171,'FIE108163','AU4-D04'],
+[7172,'FIE108164','AU4-D05'],
+[7173,'FIE108165','AU4-D03'],
+[7174,'FIE108166','AU4-D02'],
+[7175,'FIE108167','AU4-D13'],
+[7176,'FIE108168','AU4-D12'],
+[7177,'FIE108169','AU4-D11'],
+[7178,'FIE108170','AU4-D10'],
+[7179,'FIE108171','AU4-D09'],
+[7180,'FIE108172','AU4-D08'],
+[7181,'FIE108173','AU4-D19'],
+[7182,'FIE108174','AU4-D18'],
+[7183,'FIE108175','AU4-D17'],
+[7184,'FIE108176','AU4-D16'],
+[7185,'FIE108177','AU4-D15'],
+[7186,'FIE108178','AU4-D14'],
+[7187,'FIE108179','AU4-D25'],
+[7188,'FIE108180','AU4-D24'],
+[7189,'FIE108181','AU4-D23'],
+[7190,'FIE108182','AU4-D22'],
+[7191,'FIE108183','AU4-D21'],
+[7192,'FIE108184','AU4-D20'],
+[7193,'FIE108185','AU4-D31'],
+[7194,'FIE108186','AU4-D30'],
+[7195,'FIE108187','AU4-D29'],
+[7196,'FIE108188','AU4-D28'],
+[7197,'FIE108189','AU4-D27'],
+[7198,'FIE108190','AU4-D26'],
+[7199,'FIE108191','AU4-D37'],
+[7200,'FIE108192','AU4-D36'],
+[7201,'FIE108193','AU4-D35'],
+[7202,'FIE108194','AU4-D34'],
+[7203,'FIE108195','AU4-D33'],
+[7204,'FIE108196','AU4-D32'],
+[7205,'MLA148101','R0.2.101'],
+[7206,'MLA148102','R0.2.89'],
+[7207,'MLA148103','R0.2.82'],
+[7208,'MLA148104','R0.2.102'],
+[7209,'MLA148105','R0.2.100'],
+[7210,'MLA148106','R0.2.83'],
+[7211,'MLA148107','R0.2.88'],
+[7212,'MLA148108','R0.2.104'],
+[7213,'MLA148109','R0.2.96'],
+[7214,'MLA148110','R0.2.84'],
+[7215,'MLA148111','R0.2.93'],
+[7216,'MLA148112','R0.2.97'],
+[7217,'MLA148113','R0.2.80'],
+[7218,'MLA148114','R0.2.95'],
+[7219,'MLA148115','R0.2.94'],
+[7220,'MLA148116','R0.2.92'],
+[7221,'MLA148117','R0.2.81'],
+[7222,'MLA148118','R0.2.99'],
+[7223,'MLA148119','R0.2.98'],
+[7224,'MLA148120','R0.2.103'],
+[7225,'MLB148131','PL4.6'],
+[7226,'MLB148132',''],
+[7227,'MLB148133',''],
+[7228,'MLB148134','PL4.2'],
+[7229,'MLB148135','PL4.3'],
+[7230,'MLB148136',''],
+[7231,'MLB148137',''],
+[7232,'MLB148138',''],
+[7233,'MLB148139',''],
+[7234,'MLB148140','PL4.8'],
+[7235,'MLB148141',''],
+[7236,'MLB148142',''],
+[7237,'MLB148143',''],
+[7238,'MLB148144',''],
+[7239,'MLB148145','PL4.9'],
+[7240,'MLB148146',''],
+[7241,'MLB148147',''],
+[7242,'MLB148148',''],
+[7243,'MLB148149','PL4.1'],
+[7244,'MLB148150',''],
+[7245,'MLB148151',''],
+[7246,'MLB148152',''],
+[7247,'MLB148153','PL4.10'],
+[7248,'MLB148154','PL4.7'],
+[7249,'MLB148155','PL4.4'],
+[7250,'MLB148156',''],
+[7251,'MLB148157','PL4.5'],
+[7252,'MLB148158',''],
+[7253,'MLB148159',''],
+[7254,'MLB148160','PL.4.30'],
+[7255,'TSA130120','P2-D21'],
+[7256,'TSA130121','P2-D7'],
+[7257,'TSA130122','P2-D6'],
+[7258,'TSA130123','P2-D5'],
+[7259,'TSA130124','P2-D4'],
+[7260,'TSA130125','P2-D3'],
+[7261,'TSA130126','P2-D2'],
+[7262,'TSA130127','P2-D1'],
+[7263,'TSA130128','P2-D9'],
+[7264,'TSA130129','P2-D8'],
+[7265,'TSA130130','P2-D10'],
+[7266,'TSA130131','P2-D11'],
+[7267,'TSA130132','P2-D12'],
+[7268,'TSA130133','P2-D13'],
+[7269,'TSA130134','P2-D14'],
+[7270,'TSA130135','P2-D15'],
+[7271,'TSA130136','P2-D16'],
+[7272,'TSA130137','P2-D17'],
+[7273,'TSA130138','P2-D18'],
+[7274,'TSA130139','P2-D19'],
+[7275,'TSA130140','P2-D20'],
+[7276,'TSA130141','P2-D22'],
+[7277,'TSA130142',''],
+[7278,'TSA130143','P2-D28'],
+[7279,'TSA130144','P2-D27'],
+[7280,'TSA130145','P2-D26'],
+[7282,'TSA130147','P2-D24'],
+[7283,'TSA130148','P2-D23'],
+[7284,'TSA130149','P2-D36'],
+[7285,'TSA130150','P2-D35'],
+[7286,'TSA130151','P2-D33'],
+[7287,'TSA130152','P2-D34'],
+[7288,'TSA130153','P2-D31'],
+[7290,'TSA130155','P2-D30'],
+[7321,'DEE121055','R0.S.17'],
+[7322,'DEE121056','R0.S.11'],
+[7323,'DEE121057','R0.S.50'],
+[7324,'DEE121058','R0.S.55'],
+[7325,'DEE121059','R0.S.60'],
+[7326,'DEE121060','R0.S.5'],
+[7330,'BIB100195','AI-21'],
+[7331,'BIB100196','AU-5'],
+[7332,'BIB100197','AI-15'],
+[7333,'BIB100198','AI-14'],
+[7334,'BIB100199','AI-13'],
+[7335,'BIB100200','AI-12'],
+[7336,'BIB100201','AI-11'],
+[7337,'BIB100202','AU-4'],
+[7338,'BIB100203','AI-10'],
+[7339,'BIB100204','AI-9'],
+[7340,'BIB100205','AI-8'],
+[7341,'BIB100206','AI-7'],
+[7342,'BIB100207','AI-6'],
+[7343,'BIB100208','AU-3'],
+[7344,'BIB100209','AI-5'],
+[7345,'BIB100210','AI-4'],
+[7346,'BIB100211','AI-3'],
+[7347,'BIB100212','AI-2'],
+[7348,'BIB100213','AI-1'],
+[7349,'BIB100214','AU-2'],
+[7350,'BIB100215','AO-10'],
+[7351,'BIB100216','AO-9'],
+[7352,'BIB100217','AO-8'],
+[7353,'BIB100218','AO-7'],
+[7354,'BIB100219','AO-6'],
+[7355,'BIB101080','AU-1'],
+[7356,'BIB101081','AO-5'],
+[7357,'BIB101082','AO-4'],
+[7358,'BIB101083','AO-3'],
+[7359,'BIB101084','AO-2'],
+[7360,'BIB100185',''],
+[7364,'AMA126161','AE-V5.11'],
+[7365,'AMA126162','AE-D11.11'],
+[7366,'AMA126163','AE-D15.17'],
+[7367,'AMA126164','AE-D15.18'],
+[7368,'AMA126165','AE-D15.20'],
+[7369,'AMA126166','AE-D15.19'],
+[7370,'AMA126167','AE-D15.22'],
+[7371,'AMA126168','AE-D15.21'],
+[7372,'AMA126169',''],
+[7373,'AMA126170',''],
+[7374,'AMA126171','AE-D11.9'],
+[7375,'AMA126172','AE-V5.9'],
+[7376,'AMA126173','AE-D15.11'],
+[7377,'AMA126174','AE-D15.12'],
+[7378,'AMA126175','AE-D14.14'],
+[7379,'AMA126176','AE-D15.13'],
+[7380,'AMA126177','AE-D15.16'],
+[7381,'AMA126178','AE-D14.15'],
+[7382,'AMA126179',''],
+[7383,'AMA126180',''],
+[7384,'AMA126181','AE-D11.8'],
+[7385,'AMA126182','AE-V5.8'],
+[7386,'AMA126183','AE-D15.5'],
+[7387,'AMA126184','AE-D15.6'],
+[7388,'AMA126185','AE-D15.7'],
+[7389,'AMA126186','AE-D15.8'],
+[7390,'AMA126187','AE-D15.10'],
+[7391,'AMA126188','AE-D15.4'],
+[7392,'AMA126189',''],
+[7393,'AMA126190',''],
+[7394,'AMA126191','AE-D14.24'],
+[7395,'AMA126192','AE-D14.23'],
+[7396,'AMA126193','AE-D15.2'],
+[7397,'AMA126194','AE-D14.19'],
+[7398,'AMA126195','AE-D14.21'],
+[7399,'AMA126196','AE-D14.22'],
+[7400,'AMA126197','AE-D14.20'],
+[7407,'CVA144050','P1-D45'],
+[7408,'CVA144051','P1.D98'],
+[7409,'CVA144052','P1-D43'],
+[7410,'CVA144053','P1-D44'],
+[7411,'CVA144054','P1-D42'],
+[7412,'CVA144055','P1-D41'],
+[7413,'CVA144056','P1-D40'],
+[7414,'CVA144057','P1-D39'],
+[7415,'CVA144058','P1-D38'],
+[7416,'CVA144059','P1-D37'],
+[7417,'CVA144060','P1-D36'],
+[7418,'CVA144061','P1-D35'],
+[7419,'CVA144062','P1-D34'],
+[7420,'CVA144063','P1-D33'],
+[7421,'CVA144064','P1-D32'],
+[7422,'CVA144065','P1-D31'],
+[7423,'CVA144066','P1.D99'],
+[7424,'CVA144067','P1-D30'],
+[7425,'CVA144068','P1-D29'],
+[7426,'CVA144069','P1-D28'],
+[7427,'CVA144070','P1-D27'],
+[7428,'CVA144071','P1-D26'],
+[7429,'CVA144072','P1-D25'],
+[7430,'CVA144073','P1-D24'],
+[7432,'CVA144075','P1-D22'],
+[7433,'CVA144076','P1-D21'],
+[7434,'CVA144077','P1-D20'],
+[7435,'CVA144078','P1-D19'],
+[7436,'CVA144079','P1-D18'],
+[7437,'CVA144080','P1-D17'],
+[7442,'CVB144161','P1.D94'],
+[7443,'CVB144162','P1.D93'],
+[7445,'CVB144163','P1.D96'],
+[7448,'CVB144164','P1.D95'],
+[7450,'CVB144165','P1.D97'],
+[7476,'CIA118027',''],
+[7489,'BAA138095','OA2-B12'],
+[7490,'BAA138098','OA2-B7'],
+[7491,'BAA138099','OA2-B8'],
+[7492,'BAA138107','OA2-A40'],
+[7493,'BAA138103','OA2-A47'],
+[7494,'BAA138111','OA2-A38'],
+[7495,'BAA138097','OA2-B10'],
+[7497,'BAA138105','OA2-A36'],
+[7498,'BAA138108','OA2-A37'],
+[7499,'BAA138102','OA2-A46'],
+[7500,'BAA138101','OA2-A44'],
+[7502,'BAA138106','OA2-A42'],
+[7503,'BAA138096','OA2-B11'],
+[7504,'BAA138104','OA2-A41'],
+[7505,'CIA118020',''],
+[7506,'CIA118021',''],
+[7507,'CIA118022',''],
+[7508,'CIA118023',''],
+[7509,'CIA118024','C7'],
+[7510,'CIA118025',''],
+[7511,'CIA118026',''],
+[7513,'CIA118028',''],
+[7514,'CIA118029',''],
+[7515,'CIA118159',''],
+[7516,'CIA118225',''],
+[7517,'CIA118226',''],
+[7518,'CVB144130','P1.D1'],
+[7519,'CVB144131','P1-D63'],
+[7520,'CVB144132','P1-D64'],
+[7521,'CVB144133','P1-D65'],
+[7522,'CVB144134','P1-D66'],
+[7523,'CVB144135','P1-D67'],
+[7524,'CVB144136','P1-D68'],
+[7525,'CVB144137','P1-D69'],
+[7526,'CVB144138','P1-D70'],
+[7527,'CVB144139','P1-D71'],
+[7528,'CVB144140','P1.D72'],
+[7529,'CVB144141','P1.D73'],
+[7530,'CVB144142','P1.D74'],
+[7531,'CVB144143','P1.D75'],
+[7532,'CVB144144','P1.D76'],
+[7533,'CVB144145','P1.D78'],
+[7534,'CVB144146','P1.D77'],
+[7535,'CVB144147','P1.D79'],
+[7536,'CVB144148','P1.D80'],
+[7537,'CVB144149','P1.D81'],
+[7538,'CVB144150','P1.D82'],
+[7539,'CVB144151','P1.D83'],
+[7540,'CVB144152','P1.D84'],
+[7541,'CVB144153','P1.D89'],
+[7542,'CVB144154','P1.D86'],
+[7543,'CVB144155','P1.D88'],
+[7544,'CVB144156','P1.D85'],
+[7545,'CVB144157','P1.D87'],
+[7546,'CVB144158','P1.D90'],
+[7547,'CVB144159','P1.D91'],
+[7548,'CVB144160','P1.D92'],
+[7549,'CMC126226','AE-D13.1'],
+[7550,'CMC126227','AE-D13.2'],
+[7551,'CMC126228','AE-D13.3'],
+[7552,'CMC126229','AE-D13.4'],
+[7553,'CMC126230','AE-D13.5'],
+[7554,'CMC126231','AE-D13.6'],
+[7555,'CMC126232','AE-D13.7'],
+[7556,'CMC126233','AE-D13.8'],
+[7557,'CMC126234','AE-D13.9'],
+[7558,'CMC126235','AE-D13.10'],
+[7559,'CMC126236','AE-D13.11'],
+[7560,'CMC126237','AE-D13.12'],
+[7561,'CMC126238','AE-D13.13'],
+[7562,'CMC126239','AE-D13.14'],
+[7563,'CMC126240','AE-D13.15'],
+[7564,'CMC126241','AE-D13.16'],
+[7565,'CMC126242','AE-D13.17'],
+[7566,'CMC126243','AE-D13.18'],
+[7567,'CMC126244','AE-D13.19'],
+[7568,'CMC126245','AE-D13.20'],
+[7569,'CMC126246','AE-D14.5'],
+[7570,'CMC126247','AE-D14.6'],
+[7571,'EMH105201','R5.0.6'],
+[7572,'EMH105202','R5.0.5'],
+[7573,'EMH105203','R5.0.4'],
+[7574,'EMH105204','R5.0.3'],
+[7575,'EMH105205','R5.0.2'],
+[7576,'EMH105206','R5.0.11'],
+[7577,'EMH105207','R5.0.10'],
+[7578,'CMA126100','PS1-M4'],
+[7580,'EMH105208','R5.0.9'],
+[7591,'EMH105209','R5.0.8'],
+[7592,'EMH105210','R5.0.7'],
+[7593,'EMH105211','R5.0.16'],
+[7594,'EMH105212','R5.0.15'],
+[7596,'EMH105213','R5.0.14'],
+[7597,'EMH105214','R5.0.13'],
+[7598,'EMH105215','R5.0.12'],
+[7599,'EMH105216','R5.0.21'],
+[7600,'EMH105217','R5.0.20'],
+[7605,'EMH105218','R5.0.19'],
+[7606,'EMH105219','R5.0.18'],
+[7607,'EMH105220','AI3.I13'],
+[7609,'EMH105221','R5.0.1'],
+[7610,'CMC126248','AE-D14.4'],
+[7611,'CMC126249','AE-D14.3'],
+[7612,'CMC126250','AE-D14.2'],
+[7613,'CMC126251','AE-D14.1'],
+[7614,'CMC126252','AE 2.2'],
+[7615,'CMC126253','AE-D13.23'],
+[7616,'CMC126254','AE-D13.22'],
+[7617,'CMC126085','AE-D13.21'],
+[7618,'CMC126086','AE-D14.16'],
+[7619,'CMC126087','AE-D14.14'],
+[7620,'CMC126088','AE-D14.15'],
+[7621,'CMC126089','AE-D7.24'],
+[7622,'CMC126090','AE-D14.13'],
+[7623,'CMC126091','AE.D8.1'],
+[7624,'CMC126092','AE-D14.10'],
+[7625,'CMC126093','AE 8.3'],
+[7626,'CMC126094','AE-D14.8'],
+[7627,'CMC126095','AE 2.3'],
+[7628,'CMC126096','AE 8.2'],
+[7629,'CEA102050','abr-67'],
+[7654,'CEA102239','may-92'],
+[7655,'CEA102240','may-93'],
+[7656,'CEA102241','may-95'],
+[7657,'CEA102242','may-94'],
+[7658,'CEA102243','may-97'],
+[7659,'CEA102244','may-96'],
+[7660,'CIC118031',''],
+[7661,'CIC118040',''],
+[7662,'CIC118041',''],
+[7663,'CIC118042',''],
+[7664,'CIC118043',''],
+[7665,'CIC118044',''],
+[7666,'CIC118045',''],
+[7667,'CIC118046',''],
+[7668,'CIC118047',''],
+[7669,'CIC118049',''],
+[7670,'CIC118050',''],
+[7671,'CIC118070',''],
+[7672,'CIC118071',''],
+[7673,'CIC118072',''],
+[7674,'CIC118073','33'],
+[7675,'CIC118074',''],
+[7676,'CIC118075',''],
+[7677,'CIC118077',''],
+[7678,'CIC118078',''],
+[7679,'CIC118079',''],
+[7680,'CIC118080',''],
+[7681,'CIC118081',''],
+[7682,'CIC118082',''],
+[7683,'CIC118083',''],
+[7684,'CIC118084',''],
+[7685,'CIC118085',''],
+[7686,'CIC118086',''],
+[7687,'CIC118087',''],
+[7688,'CIC118088',''],
+[7689,'CIC118089',''],
+[7690,'CIC118090',''],
+[7691,'CIC118091',''],
+[7692,'CIC118092',''],
+[7693,'CIC118093',''],
+[7694,'CIC118094',''],
+[7695,'CIC118095',''],
+[7696,'CIC118096',''],
+[7697,'CIC118097',''],
+[7698,'CIC118098',''],
+[7699,'CIC118099',''],
+[7700,'CIG118200','J1'],
+[7701,'CIG118201','J2'],
+[7702,'CIG118202','J3'],
+[7703,'CIG118203',''],
+[7704,'CIG118204',''],
+[7705,'CIG118206',''],
+[7706,'CIG118207',''],
+[7707,'CIG118208',''],
+[7708,'CIG118209',''],
+[7709,'CIG118210',''],
+[7710,'CIG118211',''],
+[7711,'CIG118212',''],
+[7712,'CIG118213',''],
+[7713,'CIG118214',''],
+[7714,'CIG118215',''],
+[7715,'CIG118216',''],
+[7716,'CIG118231',''],
+[7717,'EMD104185','R6.1.122'],
+[7718,'EMD104186','R6.1.137'],
+[7719,'EMD104187','R6.1.138'],
+[7720,'EMD104188','R6.1.139'],
+[7721,'EMD104189','R6.1.140'],
+[7722,'EMD104190','R6.1.141'],
+[7723,'EMD104191','R6.1.142'],
+[7724,'EMD104192','R6.1.143'],
+[7725,'EMD104193','R6.1.106'],
+[7726,'EMD104194','R6.1.108'],
+[7727,'EMD104195','R6.1.109'],
+[7728,'EMD104196','R6.1.110'],
+[7729,'EMD104197','R6.1.111'],
+[7730,'EMD104198','R6.1.112'],
+[7731,'EMD104199','R6.1.113'],
+[7732,'EMD104200','R6.1.114'],
+[7733,'EMD104201','R6.1.115'],
+[7734,'EMD104202','R6.1.116'],
+[7735,'EMD104203','R6.1.117'],
+[7736,'EMD104204','R6.1.120'],
+[7737,'EMD104205','R6.1.119'],
+[7738,'EMD104206','R6.1.118'],
+[7739,'EMD104207','R6.1.134'],
+[7740,'EMD104208','R6.1.133'],
+[7741,'EMD104209','R6.1.132'],
+[7742,'EMD104210','R6.1.128'],
+[7743,'EMD104211','R6.1.127'],
+[7744,'EMD104212','R6.1.126'],
+[7745,'EMD104213','R6.1.123'],
+[7746,'EMD104214','R6.1.124'],
+[7747,'EMD104215','R6.1.125'],
+[7748,'EMD104216','R6.1.130'],
+[7749,'EMD104217','R6.1.131'],
+[7750,'EMD104218','R6.1.129'],
+[7752,'PSA114072','9.AULA1'],
+[7753,'PSA114073','T-1.AULA1'],
+[7754,'PSA114074','T-2.AULA1'],
+[7755,'PSA114075','T-3.AULA1'],
+[7756,'PSA114076','T-4.AULA1'],
+[7757,'PSA114077','T-5.AULA1'],
+[7759,'PSA114079','T-7.AULA1'],
+[7760,'PSA114080','3.AULA1'],
+[7761,'PSA114081','11.AULA1'],
+[7762,'PSA114082','T-12.AULA1'],
+[7765,'PSA114085','6.AULA1'],
+[7767,'PSA114087','T-8.AULA1'],
+[7769,'PSA114089','7.AULA1'],
+[7770,'PSA114090','5.AULA1'],
+[7771,'PSA114091','T-10.AULA1'],
+[7772,'PSA114092','4.AULA1'],
+[7773,'PSA114093','2.AULA1'],
+[7775,'PSA114095','T-14.AULA1'],
+[7776,'PSA114096','T-21.AULA1'],
+[7777,'PSA114097','T-20.AULA1'],
+[7779,'PSA114099','T-18.AULA1'],
+[7780,'PSA114100','T-17.AULA1'],
+[7781,'PSA114101','T-16.AULA1'],
+[7783,'PSA114103','10.AULA1'],
+[7784,'CMB127122','AE-D3.22'],
+[7786,'CMB127118','AE-D9.16'],
+[7789,'CMB127123','AE-D9.22'],
+[7795,'CMB127121','AE-D17.1'],
+[7796,'CMB127120','AE-D9.17'],
+[7797,'CMB127119','AE-D3.16'],
+[7798,'CMB127124','AE-D3.23'],
+[7799,'CMB127117','AE-D3.21'],
+[7800,'CMB127116','AE-D9.21'],
+[7801,'CMB127115','AE-D17.2'],
+[7802,'CMB127114','AE-D9.15'],
+[7803,'CMB127113','PCE.P16.21'],
+[7804,'CMB127112','PCE.P16.20'],
+[7805,'CMB127111','AE-D9.19'],
+[7806,'CMB127110','AE-D3.19'],
+[7807,'CMB127109','AE.D17.3'],
+[7808,'CMB127108','AE-D9.14'],
+[7809,'CMB127107','AE-D9.13'],
+[7810,'CMB127106','AE-D3.13'],
+[7811,'CMB127105','V3.18'],
+[7812,'CMB127104','D9.18'],
+[7813,'CMB127103','AE-D17.4'],
+[7814,'CMB127102','PCE.P16.22'],
+[7815,'CMB127101','AE-D3.12'],
+[7816,'CMB127100','AE-D9.12'],
+[7817,'CID118037','D3'],
+[7818,'CID118038','D8'],
+[7819,'CID118048','D11'],
+[7820,'CID118051',''],
+[7821,'CID118052',''],
+[7822,'CID118053',''],
+[7823,'CID118054',''],
+[7824,'CID118055',''],
+[7825,'CID118056',''],
+[7826,'CID118057','D7'],
+[7827,'CID118058','D9'],
+[7828,'CID118059',''],
+[7829,'CID118060',''],
+[7830,'CID118061',''],
+[7831,'CID118062',''],
+[7832,'CID118063',''],
+[7833,'CID118064',''],
+[7834,'CID118065',''],
+[7835,'CID118066',''],
+[7836,'CID118067',''],
+[7837,'CID118068',''],
+[7838,'CID118069',''],
+[7839,'CID118156',''],
+[7840,'CID118158',''],
+[7841,'CIE118100',''],
+[7842,'CIE118101',''],
+[7843,'CIE118102',''],
+[7844,'CIE118103',''],
+[7845,'CIE118104',''],
+[7846,'CIE118105',''],
+[7847,'CIE118106',''],
+[7848,'CIE118107',''],
+[7849,'CIE118108',''],
+[7850,'CIE118109',''],
+[7851,'CIE118110',''],
+[7852,'CIE118111',''],
+[7853,'CIE118112',''],
+[7854,'CIE118113',''],
+[7855,'CIE118114',''],
+[7856,'CIE118115',''],
+[7857,'CIE118116',''],
+[7858,'CIE118117',''],
+[7859,'CIE118149',''],
+[7860,'CIE118150',''],
+[7861,'CIE118153',''],
+[7862,'CIE118154',''],
+[7863,'CIE118155',''],
+[7864,'CIF118129','V4'],
+[7865,'CIF118130',''],
+[7866,'CIF118131',''],
+[7867,'CIF118132',''],
+[7868,'CIF118133',''],
+[7869,'CIF118134',''],
+[7870,'CIF118135','V3'],
+[7871,'CIF118136',''],
+[7872,'CIF118137',''],
+[7873,'CIF118138',''],
+[7874,'CIF118139',''],
+[7875,'CIF118140',''],
+[7876,'CIF118141',''],
+[7877,'CIF118142','V2'],
+[7878,'CIF118143',''],
+[7879,'CIF118144',''],
+[7880,'CIF118145',''],
+[7881,'CIF118146',''],
+[7882,'CIF118147',''],
+[7883,'CIF118148','V1'],
+[7884,'CIF119001',''],
+[7885,'CIF119002','V5'],
+[7886,'CIF119003',''],
+[7887,'CIF119004',''],
+[7888,'CIF119005',''],
+[7889,'CIF119006',''],
+[7890,'CIH118205',''],
+[7891,'CIH118217',''],
+[7892,'CIH118218','J38'],
+[7893,'CIH118219','J37'],
+[7894,'CIH118227','J36'],
+[7895,'CIH118228','J34'],
+[7896,'CIH118229','J32'],
+[7897,'CIH118230','J30'],
+[7898,'CIH118232','J27'],
+[7899,'CIH118233','J28'],
+[7900,'CIH118234','J35'],
+[7901,'CIH118235','J33'],
+[7902,'CIH118236','J31'],
+[7903,'CIH118237','J29'],
+[7904,'CIH118238','J26'],
+[7905,'CIH118239','J20'],
+[7906,'CIH118240','J21'],
+[7907,'CIH118241','J23'],
+[7908,'CIH118242','J22'],
+[7909,'CIH118243','J24'],
+[7910,'CIH118244','J25'],
+[7911,'PSC114104','AU-INF-1'],
+[7912,'PSC114108','AU-INF-5'],
+[7913,'PSC114106','AU-INF-3'],
+[7914,'PSA114084','T-11.AULA1'],
+[7915,'PSA114086','8.AULA1'],
+[7916,'PSA114088','T-9.AULA1'],
+[7918,'PSC114110','AU-INF-7'],
+[7919,'PSD114130','PA-C7'],
+[7921,'PSA114094','1.AULA1'],
+[7922,'PSA114078','T-6.AULA1'],
+[7923,'PSA114083','T-13.AULA1'],
+[7924,'PSC114115','AU-INF-12'],
+[7925,'PSA114098','T-19.AULA1'],
+[7929,'PSA114102','T-15.AULA1'],
+[7930,'PSD114120','PA-C17'],
+[7931,'PSD114122','PA-C15'],
+[7932,'PSD114133','PA-B15'],
+[7933,'CEC102127','2'],
+[7934,'CEC102128','3'],
+[7935,'CEC102129','4'],
+[7936,'CEC102130','5'],
+[7937,'CEC102131','6'],
+[7938,'CEC102132','7'],
+[7939,'CEC102133','8'],
+[7940,'CEC102134','9'],
+[7941,'CEC102135','10'],
+[7942,'CEC102136','19'],
+[7943,'CEC102137','18'],
+[7944,'CEC102138','17'],
+[7945,'CEC102139','16'],
+[7946,'CEC102140','15'],
+[7947,'CEC102141','14'],
+[7948,'CEC102142','13'],
+[7949,'CEC102143','12'],
+[7950,'CEC102144','11'],
+[7951,'CEC102145','20'],
+[7952,'CEC102146','21'],
+[7953,'CEC102147','22'],
+[7954,'CEC102148','23'],
+[7955,'CEC102149','24'],
+[7956,'CEC102150','25'],
+[7957,'CEC102151','26'],
+[7958,'CEC102152','27'],
+[7959,'CEC102153','28'],
+[7960,'CEC102154','37'],
+[7961,'CEC102155','36'],
+[7962,'CEC102156','35'],
+[7963,'CEC102157','34'],
+[7964,'CEC102158','33'],
+[7965,'CEC102159','32'],
+[7966,'CEC102160','31'],
+[7967,'CEC102161','30'],
+[7968,'CEC102162','29'],
+[7969,'CEC102163','38'],
+[7970,'CEC102164','39'],
+[7971,'CEC102165','40'],
+[7972,'CEC102166','42'],
+[7973,'CEC102167','41'],
+[7974,'CEC102168','43'],
+[7975,'CEC102169','44'],
+[7976,'CEC102170','45'],
+[7977,'CEC102171','46'],
+[7978,'CEC102172','54'],
+[7979,'CEC102173','53'],
+[7980,'CEC102174','52'],
+[7981,'CEC102175','51'],
+[7982,'CEC102176','50'],
+[7983,'CEC102177','49'],
+[7984,'CEC102178','48'],
+[7985,'CEC102179','47'],
+[7986,'CEC102180','55'],
+[7987,'CEC102181','56'],
+[7988,'CEC102182','57'],
+[7989,'CEC102183','58'],
+[7990,'CEC102184','59'],
+[7991,'CEC102185','60'],
+[7992,'CEC102186','61'],
+[7993,'CEC102187','62'],
+[7994,'CEC102188','63'],
+[7995,'CEC102189','72'],
+[7996,'CEC102190','71'],
+[7997,'CEC102191','70'],
+[7998,'CEC102192','69'],
+[7999,'CEC102193','68'],
+[8000,'CEC102194','67'],
+[8001,'CEC102195','66'],
+[8002,'CEC102196','65'],
+[8003,'CEC102197','64'],
+[8004,'CEC102198','1'],
+[8005,'CUA146101','R1.0.86'],
+[8006,'CUA146102','R1.0.85'],
+[8007,'CUA146103','R1.0.181'],
+[8008,'CUA146104','R1.0.182'],
+[8009,'CUA146105','R1.0.195'],
+[8010,'CUA146106','R1.0.194'],
+[8011,'CUA146107','R1.0.179'],
+[8012,'CUA146108','R1.0.88'],
+[8013,'CUA146109','R1.0.180'],
+[8014,'CUA146110','R1.0.87'],
+[8015,'CUA146111','R1.0.89'],
+[8016,'CUA146112','R1.0.90'],
+[8017,'CUA146113','R1.0.177'],
+[8018,'CUA146114','R1.0.178'],
+[8019,'CUA146115','R1.0.176'],
+[8021,'CUA146117','R1.0.92'],
+[8022,'CUA146118','R1.0.91'],
+[8023,'CUA146119','R1.0.93'],
+[8024,'CUA146120','R1.0.173'],
+[8025,'CUA146121','R1.0.94'],
+[8026,'CUA146122','R1.0.174'],
+[8027,'CUA146123','R1.0.171'],
+[8028,'CUA146124','R1.0.95'],
+[8030,'CUA146126','R1.0.96'],
+[8031,'CUA146127','R1.0.192'],
+[8032,'CUA146128','R1.0.191'],
+[8033,'CUA146129','R1.0.190'],
+[8034,'CUA146130','R1.0.193'],
+[8035,'CTB130087','PB-D46'],
+[8036,'CTB130088','PANEL 3 - P5'],
+[8037,'CTB130089','PANEL 3 - P6'],
+[8038,'CTB130090','PANEL 3 - P4'],
+[8040,'CTB130092','PANEL 3 - P1'],
+[8041,'CTB130093','PANEL 3 - P2'],
+[8042,'CTB130094','PANEL 5 - P7'],
+[8043,'CTB130095','PANEL 5 - P8'],
+[8044,'CTB130099','PANEL 5 - P6'],
+[8045,'CTB130100','PANEL 5 - P5'],
+[8046,'CTB130101','PANEL 5 - P4'],
+[8047,'CTB130102','PANEL 5 - P3'],
+[8048,'CTB130103','PANEL 5 - P2'],
+[8049,'CTB130104','PANEL 5 - P1'],
+[8050,'CTB130105','PANEL 5 - P16'],
+[8051,'CTB130107','PANEL 5 - P15'],
+[8052,'CTB130108','PANEL 5 - P14'],
+[8053,'CTB130109','PANEL 5 - P13'],
+[8054,'CTB130110','PANEL 5 - P12'],
+[8055,'CTB130111','PANEL 5 - P11'],
+[8056,'CTB130112','PANEL 5 - P10'],
+[8057,'CTB130113','PANEL 5 - P9'],
+[8058,'CTB130160','PANEL 5 - P24'],
+[8059,'CTB130161','PANEL 5 - P23'],
+[8060,'CTB130162','PANEL 5 - P22'],
+[8061,'CTB130163','PANEL 5 - P21'],
+[8062,'CTB130164','PANEL 5 - P20'],
+[8063,'CTB130165','PANEL 5 - P19'],
+[8064,'CTB130166','PANEL 5 - P18'],
+[8065,'CTB130167','PANEL 5 - P17'],
+[8066,'BAF138167',''],
+[8067,'BAF138168','D4'],
+[8068,'BAF138169','D5'],
+[8069,'BAF138170','D6'],
+[8070,'BAF138171','E1'],
+[8071,'BAF138172','D17'],
+[8072,'BAF138173','D9'],
+[8073,'BAF138174','D10'],
+[8074,'BAF138175','E5'],
+[8075,'BAF138176','D12'],
+[8076,'BAF138177','D21'],
+[8077,'BAF138178','E6'],
+[8078,'BAF138179','D15'],
+[8079,'BAF138180','D16'],
+[8080,'BAF138181','D8'],
+[8081,'BAF138182','D18'],
+[8082,'BAF138183','D19'],
+[8083,'BAF138184','D20'],
+[8084,'BAF138185','D13'],
+[8085,'BAF138186','D22'],
+[8086,'BAF138187','D14'],
+[8087,'BAF138188','D11'],
+[8088,'BAF138189','D24'],
+[8089,'BAF138190','D23'],
+[8090,'BAF138191','D7'],
+[8091,'BAF138192','E2'],
+[8092,'BAF138193','E3'],
+[8093,'BAF138194','E4'],
+[8094,'BAG138195','ADP-2'],
+[8095,'BAG138196','C23'],
+[8096,'BAG138197','E21'],
+[8097,'BAG138198','E22'],
+[8098,'BAG138199','E24'],
+[8099,'BAG138200','E20'],
+[8100,'BAG138201','C24'],
+[8101,'BAG138202','E19'],
+[8102,'BAG138203','C20'],
+[8103,'BAG138204','C22'],
+[8104,'BAG138205','C18'],
+[8105,'BAG138206','C15'],
+[8106,'BAG138207','C16'],
+[8107,'BAG138208','C17'],
+[8108,'BAG138209','C19'],
+[8109,'BAG138210','C12'],
+[8110,'BAG138211','C13'],
+[8111,'BAG138212','C21'],
+[8112,'BAG138213','C9'],
+[8113,'BAG138214','C8'],
+[8114,'BAG138215','C7'],
+[8115,'BAG138216','C10'],
+[8116,'BAG138217','C11'],
+[8117,'BAG138218','C14'],
+[8118,'BAG138219','C5'],
+[8119,'BAG138231','E18'],
+[8120,'BAG138232','E16'],
+[8121,'BAG138233','OA3-E14 (C6)'],
+[8122,'BAG138234','OA3-C6 (E14)'],
+[8123,'BAG138235','E15'],
+[8124,'BAG138236','E17'],
+[8125,'BAG138237','E13'],
+[8126,'BAG138238','OA3-F4'],
+[8127,'CMA126136',''],
+[8128,'CMA126135','AE-V1.11'],
+[8129,'CMA126134','AE-D7.9'],
+[8130,'CMA126133','AE-V1.9'],
+[8131,'CMA126132','AE-V1.8'],
+[8132,'CMA126131','AE-D7.7'],
+[8133,'CMA126130','AE-D7.6'],
+[8134,'CMA126129','AE-V1.6'],
+[8135,'CMA126128','AE-D12.15'],
+[8136,'CMA126127',''],
+[8137,'CMA126126','AE-V1.17'],
+[8138,'CMA126125','AE-D7.17'],
+[8139,'CMA126124','AE-V1.16'],
+[8140,'CMA126123','AE-D7.16'],
+[8152,'BID100076','AK-17'],
+[8153,'BID100079','AK-8'],
+[8154,'BID100080','AK-9'],
+[8155,'BID100084','AK-10'],
+[8156,'BID100085','AK-11'],
+[8157,'BID100087','AK-12'],
+[8158,'BID100088','AU-23'],
+[8159,'BID100100','AO-16'],
+[8160,'BID100101','AO-17'],
+[8161,'BID100102','AO-19'],
+[8162,'BID100104','AO-18'],
+[8163,'BID100105','AO-20'],
+[8164,'BID100106','AK-16'],
+[8165,'BID100107','AK-3'],
+[8166,'BID100108','AK-4'],
+[8167,'BID100109','AK-5'],
+[8168,'BID100122','AK-6'],
+[8169,'BID100123','AK-7'],
+[8170,'BID100124','AK-15'],
+[8171,'BID100126','AO-11'],
+[8172,'BID100127','AO-12'],
+[8173,'BID100128','AO-13'],
+[8174,'BID100147','AO-14'],
+[8175,'BID100148','AO-15'],
+[8176,'BID100151','AK-14'],
+[8177,'BID100152','AJ-22'],
+[8178,'BID100154','AJ-23'],
+[8179,'BID100170','AJ-24'],
+[8180,'BID100171','AK-1'],
+[8181,'BID100172','AK-2'],
+[8182,'BID100174','AK-13'],
+[8183,'CED102199','A8-D29'],
+[8184,'CED102200','A8-D1'],
+[8185,'CED102201','A8-D3'],
+[8186,'CED102202','A8-D2'],
+[8187,'CED102203','A8-D4'],
+[8188,'CED102204','A8-D5'],
+[8189,'CED102205','A8-D6'],
+[8190,'CED102206','A8-D7'],
+[8191,'CED102207','A8-D8'],
+[8192,'CED102208','A8-D9'],
+[8193,'CED102209','A8-D10'],
+[8194,'CED102210','A8-D11'],
+[8195,'CED102211','A8-D12'],
+[8196,'CED102212','A8-D13'],
+[8197,'CED102213','A8-D14'],
+[8198,'CED102214','A8-D15'],
+[8199,'CED102215','A8-D16'],
+[8200,'CED102216','A8-D17'],
+[8201,'CED102217','A8-D18'],
+[8202,'CED102218','A8-D19'],
+[8203,'CED102219','A8-D20'],
+[8204,'CED102230','A8-D21'],
+[8205,'CED102231','A8-D23'],
+[8206,'CED102232','A8-D25'],
+[8207,'CED102233','A8-D24'],
+[8208,'CEB102070','01-ene'],
+[8209,'CEB102071','mar-51'],
+[8210,'CEB102072','mar-52'],
+[8211,'CEB102073','mar-53'],
+[8212,'CEB102074','mar-54'],
+[8213,'CEB102075','mar-55'],
+[8214,'CEB102076','mar-56'],
+[8215,'CEB102077','mar-66'],
+[8216,'CII118160','R2.2.11'],
+[8217,'CII118161','P2.D142'],
+[8218,'CII118162','P2.D139'],
+[8219,'CII118163','P2.D138'],
+[8220,'CII118164','P2.D135'],
+[8221,'CII118165','P2.D137'],
+[8222,'CII118166','P2.D133'],
+[8223,'CII118167',''],
+[8224,'CII118168','R2.2.14'],
+[8225,'CII118169','R2.2.12'],
+[8226,'CII118170','R2.2.9'],
+[8227,'CII118171','R2.2.8'],
+[8228,'CII118172','R2.2.6'],
+[8229,'CII118173','R2.2.4'],
+[8230,'CII118174','R2.2.1'],
+[8231,'CII118175','R2.2.7'],
+[8232,'CII118176','R2.2.5'],
+[8233,'CII118177','R2.2.10'],
+[8234,'CII118178','P2.D141'],
+[8235,'CII118179','R2.2.13'],
+[8236,'CII118180','R2.2.28'],
+[8237,'CII118181','R2.2.26'],
+[8238,'CII118182','R2.2.19'],
+[8239,'CII118183','R2.2.21'],
+[8240,'CII118184','R2.2.22'],
+[8241,'CII118185','R2.2.17'],
+[8242,'CII118186','R2.2.16'],
+[8243,'CII118187','R2.2.20'],
+[8244,'CII118188','R2.2.24'],
+[8245,'CII118189','R2.2.23'],
+[8246,'CII118190','R2.2.25'],
+[8247,'CII118191','R2.2.27'],
+[8248,'CII118192','P2.D113'],
+[8249,'CII118193','P2.D114'],
+[8250,'CII118194','P2.D111'],
+[8251,'CII118195','P2.D112'],
+[8252,'CII118196','P2.D109'],
+[8253,'CII118197',''],
+[8254,'CII118198',''],
+[8255,'EPA155050',''],
+[8256,'EPA155051',''],
+[8257,'EPA155052',''],
+[8258,'EPA155053',''],
+[8259,'EPA155054',''],
+[8260,'EPA155055',''],
+[8261,'EPA155056',''],
+[8262,'EPA155057',''],
+[8263,'EPA155058',''],
+[8264,'EPA155059',''],
+[8265,'EPA155060',''],
+[8266,'EPA155061',''],
+[8267,'EPA155062',''],
+[8268,'EPA155063',''],
+[8269,'EPA155064',''],
+[8270,'EPA155065',''],
+[8271,'EPA155066',''],
+[8272,'EPA155067',''],
+[8273,'EPA155068',''],
+[8274,'EPA155069',''],
+[8275,'EPA155070',''],
+[8276,'EPA155071',''],
+[8277,'BIF100077','AU-16'],
+[8278,'BIF100078','AL-19'],
+[8279,'BIF100081','AL-20'],
+[8280,'BIF100082','AL-21'],
+[8281,'BIF100083','AL-22'],
+[8282,'BIF100091','AL.24'],
+[8283,'BIF100092','AU-17'],
+[8284,'BIF100094','AL-14'],
+[8285,'BIF100095','AL-15'],
+[8286,'BIF100096','AL-16'],
+[8287,'BIF100098','AL-17'],
+[8288,'BIF100099','AL-18'],
+[8289,'BIF100115','AU-18'],
+[8290,'BIF100119','AL-9'],
+[8291,'BIF100129','AL-10'],
+[8292,'BIF100135','AL-11'],
+[8293,'BIF100138','AL-12'],
+[8294,'BIF100139','AL-13'],
+[8295,'BIF100140','AU-19'],
+[8296,'BIF100141','AL-5'],
+[8297,'BIF100142','AL-4'],
+[8298,'BIF100143','AL-6'],
+[8299,'BIF100144','AL-7'],
+[8300,'BIF100145','AL-8'],
+[8301,'BIF100146','AU-20'],
+[8302,'BIF101100','AK-24'],
+[8303,'BIF101101','AK-23'],
+[8304,'BIF101102','AL-2'],
+[8305,'BIF101103','AL-1'],
+[8306,'BIF101104','AL-3'],
+[8307,'BIF101105','AU-22'],
+[8308,'BIF101106','AK-18'],
+[8309,'BIF101107','AK-19'],
+[8310,'BIF101108','AK-20'],
+[8311,'BIF101109','AK-21'],
+[8312,'BIF101110','AK-22'],
+[8313,'BIF101111','AU-21'],
+[8314,'BIA100044','AS-16'],
+[8315,'BIA100045','AS-18'],
+[8316,'BIA100046','AC-13'],
+[8317,'BIA100047','AC-15'],
+[8318,'BIA100048','AC-11'],
+[8319,'BIA100049','AC-12'],
+[8320,'BIA100050','AC-6'],
+[8321,'BIA100051','AC-7'],
+[8322,'BIA100052','AS-12'],
+[8323,'BIA100053','AS-11'],
+[8324,'BIA100054','AS-15'],
+[8325,'BIA100055','AS-19'],
+[8326,'BIA100056','AC-10'],
+[8327,'BIA100057','AC-14'],
+[8328,'BIA100058','AC-8'],
+[8329,'BIA100059','AC-9'],
+[8330,'BIA100060','AS-13'],
+[8331,'BIA100061','AS-14'],
+[8332,'BIA100062','AC-3'],
+[8333,'BIA100063','AC-4'],
+[8334,'BIA100064','AC-2'],
+[8335,'BIA100065','AC-1'],
+[8336,'BIA100066','AS-9'],
+[8337,'BIA100067','AS-10'],
+[8338,'BIA100068','AB-21'],
+[8339,'BIA100069','AB-20'],
+[8340,'BIA100070','AS-21'],
+[8341,'BIA100071','AC-5'],
+[8342,'BIA100072','AS-7'],
+[8343,'BIA100073','AS-8'],
+[8344,'BIA100074','AB-6'],
+[8345,'BIA100130','AB-24'],
+[8346,'BIA100131','AB-23'],
+[8347,'BIA100132','AB-22'],
+[8348,'BIA100133','AS-5'],
+[8349,'BIA100134','AS-6'],
+[8350,'BIA100230','AB-18'],
+[8351,'BIA100231','AB-17'],
+[8352,'BIA100232','AB-16'],
+[8353,'BIA100233','AB-15'],
+[8354,'BIA100234','AS-4'],
+[8355,'BIA100235','AS-3'],
+[8356,'BIA100236','AB-14'],
+[8357,'BIA100237','AB-9'],
+[8358,'BIA100238','AB-8'],
+[8359,'BIA100239','AB-7'],
+[8360,'BIA100240','AS-1'],
+[8361,'BIA100241','AS-2'],
+[8362,'BIA100242','AB-13'],
+[8363,'BIA100243','AB-12'],
+[8364,'BIA100244','AB-11'],
+[8365,'BIA100245','AB-10'],
+[8366,'BIA100246','AS-20'],
+[8367,'BIA100247','AS-22'],
+[8368,'BIA100248','AB-3'],
+[8369,'BIA100249','AB-1'],
+[8370,'BIA100250','AB-2'],
+[8371,'BIA100251','AB-4'],
+[8372,'BIA100252','AA-24'],
+[8373,'BAC138050','D-P1-98'],
+[8374,'BAC138051','D-P1-97'],
+[8375,'BAC138052','D-P1-92'],
+[8376,'BAC138053','D-P1-94'],
+[8377,'BAC138054','D-P1-96'],
+[8378,'BAC138055','D-P1-95'],
+[8379,'BAC138056','D-P1-91'],
+[8380,'BAC138057','D-P1-93'],
+[8381,'BAC138058','D-P1-90'],
+[8382,'BAC138059','D-P1-88'],
+[8383,'BAC138060','D-P1-63'],
+[8384,'BAC138061','D-P1-84'],
+[8385,'BAC138062','D-P1-89'],
+[8386,'BAC138063','D-P1-87'],
+[8387,'BAC138064','D-P1-86'],
+[8388,'BAC138065','D-P1-85'],
+[8389,'BAC138066','D-P1-83'],
+[8390,'BAC138067','D-P1-81'],
+[8391,'BAC138068','D-P1-78'],
+[8392,'BAC138069','D-P1-76'],
+[8393,'BAC138070','D-P1-82'],
+[8394,'BAC138071','D-P1-80'],
+[8395,'BAC138072','D-P1-79'],
+[8396,'BAC138073','D-P1-77'],
+[8397,'BAC138074','D-P1-71'],
+[8398,'BAC138075','D-P1-68'],
+[8399,'BAC138076','D-P1-69'],
+[8400,'BAC138077','D-P1-70'],
+[8401,'BAD138112','P1.03'],
+[8402,'BAD138113','P1.02'],
+[8403,'BAD138114','P1.01'],
+[8404,'BAD138115','P1.04'],
+[8405,'BAD138116','P1.05'],
+[8406,'BAD138117','P1.14'],
+[8407,'BAD138118','P1.12'],
+[8408,'BAD138119','P1-10'],
+[8409,'BAD138120','P1.08'],
+[8410,'BAD138121','P1.13'],
+[8411,'BAD138122','P1.11'],
+[8412,'BAD138123','P1.09'],
+[8413,'BAD138124','P1.07'],
+[8414,'BAD138125','P1.20'],
+[8415,'BAD138126','P1.21'],
+[8416,'BAD138127','P1.22'],
+[8417,'BAD138128','P1.25'],
+[8418,'BAD138129','P1.24'],
+[8419,'BAD138130','P1-15'],
+[8420,'BAD138131','P1.23'],
+[8421,'BAD138132','P1-18'],
+[8422,'BAD138133','P1-16'],
+[8423,'BAD138134','P1-06'],
+[8424,'BAD138135','P1-17'],
+[8425,'MLA148122','R0.2.85'],
+[8426,'MLA148123','R0.2.87'],
+[8427,'MLA148124','R0.2.86'],
+[8428,'MLA148125','R0.2.91'],
+[8429,'MLA148126','R0.2.90'],
+[8430,'CDB110083','P2-D51'],
+[8431,'CDB110094','P2-D19'],
+[8432,'CDB110095','P2-D21'],
+[8433,'CDB110096','P2-D20'],
+[8434,'CDB110097','P2-D22'],
+[8435,'CDB110098','P2-D23'],
+[8436,'CDB110099','P2-D25'],
+[8437,'CDB110100','P2-D24'],
+[8438,'CDB110105','P2-D50'],
+[8439,'CDB110107','P2-D49'],
+[8440,'CDB110110','P2-D52'],
+[8441,'FAB106074','AULA-PTA-1-1'],
+[8442,'FAB106075','AULA-PTA-1-2'],
+[8443,'FAB106076','AULA-PTA-1-3'],
+[8444,'FAB106077','AULA-PTA-1-4'],
+[8445,'FAB106078','AULA-PTA-1-5'],
+[8446,'FAB106079','AULA-PTA-1-6'],
+[8447,'FAB106080','AULA-PTA-1-7'],
+[8448,'FAB106081','AULA-PTA-1-8'],
+[8449,'FAB106082','AULA-PTA-1-9'],
+[8450,'FAB106083','AULA-PTA-1-10'],
+[8451,'FAB106084','AULA-PTA-1-11'],
+[8452,'FAB106085','AULA-PTA-1-12'],
+[8453,'FAB106086','AULA-PTA-1-13'],
+[8454,'FAB106087','AULA-PTA-1-20'],
+[8455,'FAB106088','AULA-PTA-1-19'],
+[8456,'FAB106089','AULA-PTA-1-18'],
+[8457,'FAB106090','AULA-PTA-1-17'],
+[8458,'FAB106091','AULA-PTA-1-15'],
+[8459,'FAB106092','AULA-PTA-1-16'],
+[8460,'FAB106093','AULA-PTA-1-14'],
+[8461,'FAB106094','AULA-PTA-1-21'],
+[8462,'FAB106095','AULA-PTA-1-22'],
+[8463,'FAB106096','AULA-PTA-1-23'],
+[8464,'FAB106097','AULA-PTA-1-24'],
+[8465,'FAB106098','AULA-PTA-1-25'],
+[8466,'FAB106099','AULA-PTA-1-26'],
+[8467,'FAB106100','AULA-PTA-1-27'],
+[8468,'FAB106101','AULA-PTA-1-33'],
+[8469,'FAB106102','AULA-PTA-1-32'],
+[8470,'FAB106103','AULA-PTA-1-31'],
+[8471,'FAB106104','AULA-PTA-1-30'],
+[8472,'FAB106105','AULA-PTA-1-29'],
+[8473,'FAB106106','AULA-PTA-1-28'],
+[8474,'TRE134050','R2.0.54'],
+[8475,'TRE134051','R2.0.59'],
+[8476,'TRE134052','R2.0.58'],
+[8477,'TRE134053','R2.0.56'],
+[8478,'TRE134054','R2.0.57'],
+[8479,'TRE134055','R2.0.55'],
+[8480,'TRE134056','R2.0.67'],
+[8481,'TRE134057','R2.0.70'],
+[8482,'TRE134058','R2.0.69'],
+[8483,'TRE134059','R2.0.71'],
+[8484,'TRE134060','R2.0.66'],
+[8485,'TRE134061','R2.0.68'],
+[8486,'TRE134062','R2.0.61'],
+[8487,'TRE134063','R2.0.60'],
+[8488,'TRE134064','R2.0.63'],
+[8489,'TRE134065','R2.0.65'],
+[8490,'TRE134066','R2.0.64'],
+[8491,'TRE134067','R2.0.62'],
+[8492,'TRE134068','R2.0.110'],
+[8493,'TRE134069','R2.0.107'],
+[8494,'TRE134070','R2.0.108'],
+[8495,'TRE134071','R2.0.73'],
+[8496,'TRE134072','R2.0.72'],
+[8497,'TRE134073','R2.0.109'],
+[8498,'TRD134082','R2.0.83'],
+[8499,'TRD134083','R2.0.82'],
+[8500,'TRD134085','R2.0.79'],
+[8501,'TRD134086','R2.0.78'],
+[8502,'TRD134087','R2.0.77'],
+[8503,'TRD134088','R2.0.76'],
+[8504,'TRD134089','R2.0.98'],
+[8505,'TRD134090','R2.0.96'],
+[8506,'TRD134091','R2.0.97'],
+[8507,'TRD134092','R2.0.99'],
+[8508,'TRD134093','R2.0.89'],
+[8509,'TRD134094','R2.0.91'],
+[8510,'TRD134095','R2.0.88'],
+[8511,'TRD134096','R2.0.90'],
+[8512,'TRD134097','R2.0.100'],
+[8513,'TRD134098','R2.0.103'],
+[8514,'TRD134099','R2.0.102'],
+[8515,'TRD134100','R2.0.101'],
+[8516,'TRD134101','R2.0.87'],
+[8517,'TRD134102','R2.0.85'],
+[8518,'TRD134103','R2.0.84'],
+[8519,'TRD134104','R2.0.86'],
+[8520,'TRD134105','R2.0.94'],
+[8521,'TRD134106','R2.0.92'],
+[8522,'TRD134107','R2.0.93'],
+[8523,'TRD134111','R2.0.95'],
+[8524,'BIC100175','AJ19'],
+[8525,'BIC100176','AJ-21'],
+[8526,'BIC100177','AJ-16'],
+[8527,'BIC100178','AJ-15'],
+[8528,'BIC100179','AJ-14'],
+[8529,'BIC100180','AJ-13'],
+[8530,'BIC100181','AJ-12'],
+[8531,'BIC100182','AJ-8'],
+[8532,'BIC100183','AJ-7'],
+[8533,'BIC100184','AJ-10'],
+[8534,'BIC100185','AJ-9'],
+[8535,'BIC100186','AU-8'],
+[8536,'BIC100187','AJ-11'],
+[8537,'BIC100188','AU-7'],
+[8538,'BIC100189','AJ-6'],
+[8539,'BIC100190','AJ-5'],
+[8540,'BIC100191','AJ-4'],
+[8541,'BIC100192','AJ-3'],
+[8542,'BIC100193','AJ-2'],
+[8543,'BIC100194','AU-6'],
+[8544,'BIC101094','AI-16'],
+[8545,'BIC101093','AI-17'],
+[8546,'BIC101092','AI-18'],
+[8547,'BIC101091','AI-19'],
+[8548,'BIC101090','AI-20'],
+[8549,'CTB130096','PC1-62'],
+[8550,'CTB130097','PC1-61'],
+[8551,'CTB130098','PC1-60'],
+[8552,'CTB130106','PC1-59'],
+[8553,'CTB130114','PC1-58'],
+[8554,'ODA112050','TOMA A20'],
+[8555,'ODA112051','TOMA A13'],
+[8556,'ODA112052','TOMA A21'],
+[8557,'ODA112053','TOMA A19'],
+[8558,'ODA112054','TOMA A2'],
+[8559,'ODA112055','TOMA A3'],
+[8560,'ODA112056','TOMA A12'],
+[8561,'ODA112057','TOMA A10'],
+[8562,'ODA112058','TOMA A7'],
+[8563,'ODA112059','TOMA A1'],
+[8564,'ODA112060','TOMA A6'],
+[8565,'ODA112061','TOMA A4'],
+[8566,'ODA112062','TOMA A8'],
+[8567,'ODA112063','TOMA A9'],
+[8568,'ODA112064','TOMA A17'],
+[8569,'ODA112065','TOMA A5'],
+[8570,'ODA112066','TOMA A14'],
+[8571,'ODA112067','TOMA A13'],
+[8572,'ODA112068','TOMA A18'],
+[8573,'ODA112069','TOMA A15'],
+[8574,'BIH101050','AT-2'],
+[8575,'BIH101051','AT-1'],
+[8576,'BIH101052','AG1'],
+[8577,'BIH101053','AT-3'],
+[8578,'BIH101054','AT-4'],
+[8579,'BIH101055','AT-5'],
+[8580,'BIH101056','AT-6'],
+[8581,'BIH101057','AT-19'],
+[8582,'BIH101058','AT-20'],
+[8583,'BIH101059','AT-7'],
+[8584,'BIH101060','AT-8'],
+[8585,'BIH101061','AT-9'],
+[8586,'BIH101062','AT-10'],
+[8587,'BIH101063','AT-11'],
+[8588,'BIH101064','AT-12'],
+[8589,'BIH101065','AT-21'],
+[8590,'BIH101066','AT-22'],
+[8591,'BIH101067','AT-13'],
+[8592,'BIH101068','AT-14'],
+[8593,'BIH101069','AT-15'],
+[8594,'BIH101070','AT-16'],
+[8595,'BIH101071','AT-17'],
+[8596,'BIH101072','AT-18'],
+[8597,'CIL119120','PS-D1'],
+[8598,'CIL119121','PS-D31'],
+[8599,'CIL119122','PS-D29'],
+[8600,'CIL119123','PS-D28'],
+[8601,'CIL119124','PS-D27'],
+[8602,'CIL119125','PS-D24'],
+[8603,'CIL119126','PS-D23'],
+[8604,'CIL119127','PS-D42'],
+[8605,'CIL119128','PS-D40'],
+[8606,'CIL119129','PS-D38'],
+[8607,'CIL119130','PS-D36'],
+[8608,'CIL119131','PS-D34'],
+[8609,'CIL119132','PS-D32'],
+[8610,'CIL119133','PS-D43'],
+[8611,'CIL119134','PS-D41'],
+[8612,'CIL119135','PS-D39'],
+[8613,'CIL119136','PS-D37'],
+[8614,'CIL119137','PS-D35'],
+[8615,'CIL119138','PS-D33'],
+[8616,'CIL119139','PS-D9'],
+[8617,'CIL119140','PS-D10'],
+[8618,'CIL119141','PS-D11'],
+[8619,'CIL119142','PS-D12'],
+[8620,'CIL119143','PS-D14'],
+[8621,'CIL119144','PS-D16'],
+[8622,'CIB119008',''],
+[8623,'CIB119009',''],
+[8624,'CIB119010',''],
+[8625,'CIB119011',''],
+[8626,'CIB119012',''],
+[8627,'CIB119013',''],
+[8628,'CIB119014',''],
+[8629,'CIB119015',''],
+[8630,'CIB119016',''],
+[8631,'CIB119017',''],
+[8632,'CIB119018',''],
+[8633,'CIB119019',''],
+[8634,'CIB119020',''],
+[8635,'CIB119021',''],
+[8636,'CIB119022',''],
+[8637,'CIB119023',''],
+[8638,'CIL119145','PS-D25'],
+[8639,'CIL119146','PS-D44'],
+[8640,'CIL119147','PS-D45'],
+[8647,'MEG124193','R2-00-32'],
+[8648,'MEG124196','R2.00.20'],
+[8649,'MEG124199','R2.00.35'],
+[8650,'MEG124202','R2-00-23'],
+[8651,'MEG124205','R2.00.38'],
+[8652,'MEG124208','R2-00-26'],
+[8653,'MEG124211','R2.00.41'],
+[8654,'MEG124214','R2-00-29'],
+[8655,'MEH125153','R4.0.55'],
+[8656,'MEH125155','R4.0.41'],
+[8657,'MEH125157','R4.0.11'],
+[8658,'MEH125158','R4.0.54'],
+[8659,'ENC122066',''],
+[8660,'ENB122232','R1.2.034'],
+[8661,'ENB122235','R1.2.040'],
+[8662,'ENB122244','R1.2.048'],
+[8663,'ENA122186','R1.2.018'],
+[8664,'CIN119150','D-PB-35'],
+[8665,'CIN119151','D-PB-31'],
+[8666,'CIN119152','D-PB-32'],
+[8667,'CIN119153','D-PB-30'],
+[8668,'CIN119154','D-PB-2'],
+[8669,'CIN119155','D-PB-1'],
+[8670,'CIN119156','D-PB-3'],
+[8671,'CIN119157','D-PB-26'],
+[8672,'CIN119158','D-PB-27'],
+[8673,'CIN119159','D-PB-25'],
+[8674,'CIN119160','D-PB-5'],
+[8675,'CIN119161','D-PB-6'],
+[8676,'CIN119162','D-PB-7'],
+[8677,'CIN119163','D-PB-22'],
+[8678,'CIN119164','D-PB-23'],
+[8679,'CIN119165','D-PB-21'],
+[8680,'CIN119166','D-PB-9'],
+[8681,'CIN119167',''],
+[8682,'BAB138140','PB-34'],
+[8683,'BAB138141','PB-35'],
+[8684,'BAB138142','PB-36'],
+[8685,'BAB138143','PB-33'],
+[8686,'BAB138144','PB-32'],
+[8687,'BAB138145','PB-31'],
+[8688,'BAB138146','PB-28'],
+[8689,'BAB138147','PB-D17'],
+[8690,'BAB138148','PB-20'],
+[8691,'BAB138149','PB-23'],
+[8692,'BAB138150','PB-24'],
+[8693,'BAB138151','PB-27'],
+[8694,'BAB138152','PB-25'],
+[8695,'BAB138153','PB-22'],
+[8696,'BAB138154','PB-21'],
+[8697,'BAB138155','PB-18'],
+[8698,'BAB138156','PB-19'],
+[8699,'BAB138157','PB-26'],
+[8700,'BAB138158','PB-44'],
+[8701,'BAB138159','PB-45'],
+[8702,'BAB138160','PB-43'],
+[8703,'BAB138161','PB-42'],
+[8704,'BAB138162','PB-40'],
+[8705,'BAB138163','PB-39'],
+[8706,'BAB138164','PB-41'],
+[8707,'EMG105134','R6.1.17'],
+[8708,'EMG105139','R6.1.5'],
+[8709,'FIP109068','INF-19'],
+[8710,'ENA122182','R1.2.024'],
+[8711,'ENA122084',''],
+[8712,'ENA122188','R1.2.019'],
+[8713,'ENA122189','R1.2.011'],
+[8714,'ENB122233','R1.2.033'],
+[8715,'ENB122240','R1.2.041'],
+[8716,'ENB122049',''],
+[8717,'ENB122251','R1.2.051'],
+[8718,'ENC123051','R1.3.030'],
+[8719,'END123085','R1.3.044'],
+[8720,'ENE123202',''],
+[8721,'ATA116098','AU3.39'],
+[8722,'ATA116099','AU3.41'],
+[8723,'ATA116100','AU3.43'],
+[8724,'ATA116101','AU3.45'],
+[8725,'ATA116102','AU3.25'],
+[8726,'ATA116103','AU3.29'],
+[8727,'ATA116104','AU3.33'],
+[8728,'ATA116105','AU3.36'],
+[8729,'ATA116106','AU3.23'],
+[8730,'ATA116107','AU3.24'],
+[8731,'ATA116108','AU3.27'],
+[8732,'ATA116109','AU3.32'],
+[8733,'ATA116110','AU3.35'],
+[8734,'ATA116111','AU3.10'],
+[8735,'ATA116112','AU3.8'],
+[8736,'ATA116113','AU3.14'],
+[8737,'ATA116114','AU3.18'],
+[8738,'ATA116115','AU3.22'],
+[8739,'ATA116116','AU3.9'],
+[8740,'ATA116117','AU3.13'],
+[8741,'ATA116118','AU3.17'],
+[8742,'ATA116119','AU3.21'],
+[8743,'ATA116120','AU3.2'],
+[8744,'ATA116121','AU3.4'],
+[8745,'ATA116122','AU3.5'],
+[8746,'ENA122175','R1.2.030'],
+[8747,'ENA122176','R1.2.026'],
+[8748,'ENA122177','R1.2.027'],
+[8749,'ENA122178','R1.2.025'],
+[8750,'ENA122179','R1.2.021'],
+[8751,'ENA122180','R1.2.022'],
+[8752,'ENA122181','R1.2.020'],
+[8753,'ENA122183','R1.2.023'],
+[8934,'ENA122184','R1.2.015'],
+[8754,'ENA122185','R1.2.017'],
+[8755,'ENA122187','R1.2.016'],
+[8756,'ENA122190','R1.2.014'],
+[8757,'ENA122191','R1.2.010'],
+[8758,'ENA122192','R1.2.013'],
+[8759,'ENA122193','R1.2.012'],
+[8760,'ENA122194','R1.2.008'],
+[8761,'ENA122195','R1.2.005'],
+[8762,'ENA122196','R1.2.007'],
+[8763,'ENA122197','R1.2.006'],
+[8764,'ENA122198','R1.2.009'],
+[8765,'ENB122230','R1.2.032'],
+[8766,'ENB122231','R1.2.031'],
+[8767,'ENB122234','R1.2.038'],
+[8768,'ENB122236','R1.2.043'],
+[8769,'ENB122237','R1.2.039'],
+[8770,'ENB122238','R1.2.037'],
+[8771,'TSA130146','P2-D25'],
+[8772,'TSA130154','P2-D32'],
+[8773,'FAD106138','PANEL-1-1'],
+[8774,'FAD106139','PANEL-1-2'],
+[8775,'FAD106140','PANEL-1-3'],
+[8776,'FAD106141','PANEL-1-4'],
+[8777,'FAD106142','PANEL-1-5'],
+[8778,'FAD106143','PANEL-1-6'],
+[8779,'FAD106144','PANEL-1-7'],
+[8780,'FAD106145','PANEL-1-8'],
+[8781,'FAD106146','PANEL-1-9'],
+[8782,'FAD106147','PANEL-1-10'],
+[8783,'FAD106148','PANEL-1-11'],
+[8784,'FAD106149','PANEL-1-12'],
+[8785,'FAD106150','PANEL-1-14'],
+[8786,'FAD106151','PANEL-1-15'],
+[8787,'FAD106152','PANEL-1-13'],
+[8788,'FAD106153','PANEL-1-17'],
+[8789,'FAD106154','PANEL-1-16'],
+[8790,'FAD106155','PANEL-1-18'],
+[8791,'FAD106156','PANEL-1-19'],
+[8792,'FAD106157','PANEL-1-20'],
+[8793,'FAD106158','PANEL-1-21'],
+[8794,'FAD106159','PANEL-1-22'],
+[8795,'FAD106160','PANEL-1-23'],
+[8796,'FAD106161','PANEL-1-24'],
+[8797,'FAD106162','BIB-A-25'],
+[8798,'FAD106163','BIB-A-26'],
+[8799,'CIN119168','PB-D10'],
+[8800,'MEH125160','R4.0.39'],
+[8801,'MEH125162','R4.0.14'],
+[8802,'MEH125165','R4.0.51'],
+[8803,'CMA126101','AE-V1.18'],
+[8804,'CMA126102','AE-D7.18'],
+[8805,'CMA126103','AE-V1.19'],
+[8806,'CMA126104','AE-D7.19'],
+[8807,'CMA126105','AE-V1.20'],
+[8808,'CMA126106',''],
+[8809,'CMA126107','AE-V1.21'],
+[8810,'CMA126108',''],
+[8811,'CMA126109','AE-V1.22'],
+[8812,'CMA126110',''],
+[8813,'CMA126111','AE-V1.23'],
+[8814,'CMA126112',''],
+[8815,'MEH125167','R4.0.37'],
+[8816,'MEH125169','R4.0.15'],
+[8817,'MEH125171','R4.0.49'],
+[8818,'MEE124123','R1.01.78'],
+[8819,'MEE124126','R1.01.63'],
+[8820,'MEE124129','R1.01.75'],
+[8821,'ENB122239','R1.2.044'],
+[8822,'ENB122241','R1.2.045'],
+[8823,'ENB122242','R1.2.046'],
+[8824,'ENB122248','R1.2.047'],
+[8937,'ENB122249','R1.2.056'],
+[8825,'ENB122243','R1.2.042'],
+[8826,'CVA144074','P1-D23'],
+[8827,'DCA119050','PB-D23'],
+[8828,'DCA119051','PB-D24'],
+[8829,'DCA119052','PB-D25'],
+[8830,'DCA119053','PB-D26'],
+[8831,'DCA119054','PB-D35'],
+[8832,'DCA119055','PB-D33'],
+[8833,'DCA119056','PB-D31'],
+[8834,'DCA119057','PB-D29'],
+[8835,'DCA119058','PB-D27'],
+[8836,'DCA119059','PB-D28'],
+[8837,'DCA119060','PB-D30'],
+[8838,'DCA119061','PB-D32'],
+[8839,'DCA119062','PB-D34'],
+[8840,'DCA119063','PB-D36'],
+[8841,'DCA119064','PB-D45'],
+[8842,'DCA119065','PB-D43'],
+[8843,'DCA119066','PB-D41'],
+[8844,'DCA119067','PB-D39'],
+[8845,'DCA119068','PB-D38'],
+[8846,'DCA119069','PB-D37'],
+[8847,'DCA119070','PB-D40'],
+[8848,'DCA119071','PB-D42'],
+[8849,'DCA119072','PB-D44'],
+[8850,'DCA119073','PB-D46'],
+[8851,'DCA119074','PB-D53'],
+[8852,'DCA119075','PB-D52'],
+[8853,'DCA119076','PB-D51'],
+[8854,'DCA119077','PB-D50'],
+[8855,'DCA119078','PB-D49'],
+[8856,'DCA119079','PB-D48'],
+[8857,'DCA119080','PB-D47'],
+[8858,'MEG124213',''],
+[8859,'MEH125173','R4.0.35'],
+[8860,'MEH125175','R4.0.19'],
+[8861,'MEH125177','R4.0.47'],
+[8862,'MEH125179','R4.0.34'],
+[8863,'MEH125181','R4.0.22'],
+[8864,'MEH125182','R4.0.45'],
+[8865,'MEH125184','R4.0.32'],
+[8866,'MEH125186','R4.0.24'],
+[8867,'MEH125189','R4.0.44'],
+[8868,'MEH125191','R4.0.30'],
+[8869,'MEH125193','R4.00.28'],
+[8871,'CTB130091','PANEL 3 - P3'],
+[8872,'CMA126113','EA.D17.5'],
+[8873,'CMA126114',''],
+[8874,'CMA126115','AE-V1.5'],
+[8875,'CMA126116','AE-V1.12'],
+[8876,'CMA126117','AE-D7.12'],
+[8877,'CMA126118','AE-V1.13'],
+[8878,'CMA126119','AE-D7.14'],
+[8879,'CMA126120','AE-V1.14'],
+[8880,'CMA126121','AE-D7.13'],
+[8881,'CMA126122','AE-D7.15'],
+[8882,'EPB155120','P3-35'],
+[8883,'EPB155121','P3-37'],
+[8884,'ASE136176','R1.3.37'],
+[8885,'ASE136186','R1.3.27'],
+[8886,'ASE136188','R1.3.24'],
+[8887,'ASE136189','R1.3.23'],
+[8888,'ASE136166','R1.3.12'],
+[8889,'ASE136167','R1.3.11'],
+[8890,'ASE136174','R1.3.3'],
+[8891,'ASD136128','R1.2.12'],
+[8892,'FIC108107','AULA S. VILA - D-50'],
+[8893,'FIC108108','AULA S. VILA - D-51'],
+[8894,'FIC108109','AULA S. VILA - D-49'],
+[8895,'FIC108110','AULA S. VILA - D-48'],
+[8896,'FIC108111','AULA S. VILA - D-46'],
+[8897,'FIC108112','AULA S. VILA - D-44'],
+[8898,'FIC108113','AULA S. VILA - D-43'],
+[8899,'FIC108114','AULA S. VILA - D-41'],
+[8900,'FIC108115','AULA S. VILA - D-40'],
+[8901,'FIC108116','AULA S. VILA - D-39'],
+[8902,'FIC108117','AULA S. VILA - D-37'],
+[8903,'FIC108118','AULA S. VILA - D-36'],
+[8904,'FIC108119','AULA S. VILA - D-35'],
+[8905,'FIC108120','AULA S. VILA - D-34'],
+[8906,'FIC108121','AULA S. VILA - D-33'],
+[8907,'FIC108122','AULA S. VILA - D-31'],
+[8908,'FIC108123','AULA S. VILA - D-30'],
+[8909,'FIC108124','AULA S. VILA - D-29'],
+[8910,'FIC108125','AULA S. VILA - D-20'],
+[8911,'FIC108126','AULA S. VILA - D-27'],
+[8912,'FIC108127','AULA S. VILA - D-25'],
+[8913,'FIC108128','AULA S. VILA - D-24'],
+[8914,'FIC108129','AULA S. VILA - D-23'],
+[8915,'FIC108130','AULA S. VILA - D-21'],
+[8916,'FIC108131','AULA S. VILA - D-19'],
+[8917,'FIC108132','AULA S. VILA - D-28'],
+[8918,'FIC108133','AULA S. VILA - D17'],
+[8919,'FIC108134','AULA S. VILA - D14'],
+[8920,'FIC108135','AULA S. VILA - D16'],
+[8921,'FIC108136','AULA S. VILA - D13'],
+[8922,'FIC108137','AULA S. VILA - D15'],
+[8923,'FIC108138','AULA S. VILA - D11'],
+[8924,'FIC108139','AULA S. VILA - D10'],
+[8925,'FIC108140','AULA S. VILA - D9'],
+[8926,'FIC108141','AULA S. VILA - D8'],
+[8927,'FIC108142','AULA S. VILA - D7'],
+[8928,'FIC108143','AULA S. VILA - D6'],
+[8929,'FIC108144','AULA S. VILA - D4'],
+[8930,'FIC108145','AULA S. VILA - D3'],
+[8931,'FIC108146','AULA S. VILA -D2'],
+[8932,'CUA146116','R1.0.175'],
+[8933,'CUA146125','R1.0.172'],
+];
+
+const data = RAW.map(r => ({ cod: r[0], nombre: r[1], toma: r[2] }));
+
+// ---- localStorage para ediciones de PC ----
+const EDITS_KEY = 'inventario_edits_map';
+function loadEdits() {
+  try { return JSON.parse(localStorage.getItem(EDITS_KEY) || '{}'); } catch(e) { return {}; }
+}
+function saveEdits(map) {
+  try { localStorage.setItem(EDITS_KEY, JSON.stringify(map)); } catch(e) {}
+}
+let editsMap = loadEdits(); // { original_nombre -> { nombre, cod, toma } }
+
+// Apply edits on top of base data
+function getRecord(r) {
+  const e = editsMap[r._key || r.nombre];
+  if (e) return { ...r, nombre: e.nombre ?? r.nombre, cod: e.cod ?? r.cod, toma: e.toma ?? r.toma, _key: r._key || r.nombre };
+  return { ...r, _key: r.nombre };
+}
+
+// Init data with _key
+data.forEach(r => { r._key = r.nombre; });
+
+// ---- localStorage para SO (multi) ----
+const SO_KEY = 'inventario_so_map';
+const SO_OPTIONS = ['Windows 10','Windows 11','Linux','Otro'];
+function loadSOMap() {
+  try { return JSON.parse(localStorage.getItem(SO_KEY) || '{}'); } catch(e) { return {}; }
+}
+function saveSOMap(map) {
+  try { localStorage.setItem(SO_KEY, JSON.stringify(map)); } catch(e) {}
+}
+let soMap = loadSOMap(); // { nombre -> ['Windows 10', 'Linux', ...] }
+
+// ---- localStorage para Foto BIOS + Observaciones ----
+const META_KEY = 'inventario_meta_map';
+function loadMeta() {
+  try { return JSON.parse(localStorage.getItem(META_KEY) || '{}'); } catch(e) { return {}; }
+}
+function saveMeta(map) {
+  try { localStorage.setItem(META_KEY, JSON.stringify(map)); }
+  catch(e) { alert('No se pudo guardar: el almacenamiento local está lleno.\nPrueba a eliminar alguna foto BIOS de otro equipo para liberar espacio.'); }
+}
+let metaMap = loadMeta(); // { nombre -> { obs:'', foto:'data:image/jpeg;base64,...', fotoW:N, fotoH:N } }
+function getMeta(nombre) { return metaMap[nombre] || {}; }
+
+// ---- Guardado manual: fuerza el guardado en localStorage y descarga una copia JSON ----
+function guardarTodo() {
+  const btn = document.getElementById('btnGuardar');
+  try {
+    // 1) Guardado explícito en localStorage
+    saveEdits(editsMap);
+    saveSOMap(soMap);
+    saveMeta(metaMap);
+
+    // 2) Exportar copia en JSON descargable (para respaldo o sincronización entre equipos)
+    const payload = {
+      tipo: 'inventario_ordenadores_backup',
+      version: 1,
+      fecha: new Date().toISOString(),
+      edits: editsMap,
+      so: soMap,
+      meta: metaMap
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `inventario_datos_${new Date().toISOString().slice(0,10)}_${new Date().toTimeString().slice(0,5).replace(':','')}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1500);
+
+    // 3) Confirmación visual en el botón
+    if (btn) {
+      const original = btn.innerHTML;
+      const originalBg = btn.style.background;
+      btn.innerHTML = '✓ Guardado';
+      btn.style.background = '#2e7d32';
+      btn.style.borderColor = '#2e7d32';
+      btn.disabled = true;
+      setTimeout(() => {
+        btn.innerHTML = original;
+        btn.style.background = originalBg;
+        btn.style.borderColor = originalBg;
+        btn.disabled = false;
+      }, 1800);
+    }
+  } catch (e) {
+    alert('No se pudo completar el guardado: ' + e.message);
+  }
+}
+
+// ---- Importar JSON: restaura edits/so/meta desde un archivo exportado con "Guardar" ----
+function handleImportJson(event) {
+  const file = event.target.files && event.target.files[0];
+  event.target.value = ''; // permite volver a seleccionar el mismo archivo más adelante
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    let payload;
+    try {
+      payload = JSON.parse(ev.target.result);
+    } catch (e) {
+      alert('El archivo seleccionado no es un JSON válido.');
+      return;
+    }
+
+    if (!payload || typeof payload !== 'object' || (!payload.edits && !payload.so && !payload.meta)) {
+      alert('El archivo JSON no tiene el formato esperado.\nDebe ser un archivo generado con el botón "Guardar" (con las claves "edits", "so" y/o "meta").');
+      return;
+    }
+
+    const nEdits = payload.edits ? Object.keys(payload.edits).length : 0;
+    const nSO = payload.so ? Object.keys(payload.so).length : 0;
+    const nMeta = payload.meta ? Object.keys(payload.meta).length : 0;
+    const fechaTxt = payload.fecha ? fmtBackupDate(new Date(payload.fecha).getTime()) : 'fecha desconocida';
+
+    const msg = '¿Importar este archivo (' + fechaTxt + ')?\n\n' +
+      '- ' + nEdits + ' edición(es) de nombre/código/toma\n' +
+      '- ' + nSO + ' equipo(s) con sistema operativo asignado\n' +
+      '- ' + nMeta + ' equipo(s) con observaciones/foto BIOS\n\n' +
+      'Esto sustituirá TODOS los datos actuales por los del archivo.\nSe creará antes una copia de seguridad del estado actual por si necesitas deshacerlo.';
+
+    if (!confirm(msg)) return;
+
+    crearBackup('Antes de importar JSON (' + fechaTxt + ')');
+
+    editsMap = payload.edits ? JSON.parse(JSON.stringify(payload.edits)) : {};
+    soMap    = payload.so    ? JSON.parse(JSON.stringify(payload.so))    : {};
+    metaMap  = payload.meta  ? JSON.parse(JSON.stringify(payload.meta)) : {};
+
+    saveEdits(editsMap);
+    saveSOMap(soMap);
+    saveMeta(metaMap);
+
+    selectedKeys.clear();
+    doSearch();
+    alert('Datos importados correctamente.');
+  };
+  reader.onerror = function() {
+    alert('No se pudo leer el archivo seleccionado.');
+  };
+  reader.readAsText(file);
+}
+
+// ---- Copias de seguridad (restauración) ----
+const BACKUPS_KEY = 'inventario_backups';
+const MAX_BACKUPS = 12;
+function loadBackups() {
+  try { return JSON.parse(localStorage.getItem(BACKUPS_KEY) || '[]'); } catch(e) { return []; }
+}
+function saveBackups(arr) {
+  try { localStorage.setItem(BACKUPS_KEY, JSON.stringify(arr)); } catch(e) {}
+}
+function crearBackup(label) {
+  const backups = loadBackups();
+  backups.unshift({
+    ts: Date.now(),
+    label: label || 'Copia de seguridad',
+    edits: JSON.parse(JSON.stringify(editsMap)),
+    so: JSON.parse(JSON.stringify(soMap))
+  });
+  saveBackups(backups.slice(0, MAX_BACKUPS));
+}
+function fmtBackupDate(ts) {
+  return new Date(ts).toLocaleString('es-ES', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
+}
+
+let activePopup = null;
+
+function soClass(so) {
+  if (so === 'Windows 10') return 'so-win10';
+  if (so === 'Windows 11') return 'so-win11';
+  if (so === 'Linux') return 'so-linux';
+  return 'so-otro';
+}
+
+function getSOs(nombre) {
+  const v = soMap[nombre];
+  if (!v) return [];
+  return Array.isArray(v) ? v : [v]; // backwards compat
+}
+
+function buildSOCell(nombre) {
+  const sos = getSOs(nombre);
+  const key = nombre.replace(/[^A-Za-z0-9]/g,'_');
+  const badgesHtml = sos.length
+    ? sos.map(s => `<span class="so-badge ${soClass(s)}">${s}</span>`).join('')
+    : `<span class="so-vacio">—</span>`;
+  const checksHtml = SO_OPTIONS.map(o =>
+    `<label><input type="checkbox" value="${o}" ${sos.includes(o)?'checked':''} onchange="toggleSO('${nombre.replace(/'/g,"\\'")}','${o}',this.checked,'${key}')"> ${o}</label>`
+  ).join('');
+  return `<td>
+    <div class="so-popup-wrap">
+      <span id="sobadges_${key}">${badgesHtml}</span>
+      <span class="so-edit-btn" onclick="openSOPopup(event,'${key}')" title="Editar SO">✎</span>
+      <div class="so-popup" id="sopop_${key}">
+        ${checksHtml}
+      </div>
+    </div>
+  </td>`;
+}
+
+function openSOPopup(event, key) {
+  event.stopPropagation();
+  const popup = document.getElementById('sopop_' + key);
+  if (activePopup && activePopup !== popup) {
+    activePopup.classList.remove('open');
+  }
+  const isOpen = popup.classList.contains('open');
+  if (isOpen) { popup.classList.remove('open'); activePopup = null; return; }
+  // Position near the edit button
+  const btn = event.target;
+  const rect = btn.getBoundingClientRect();
+  popup.style.top = (rect.bottom + window.scrollY + 4) + 'px';
+  popup.style.left = (rect.left + window.scrollX) + 'px';
+  popup.classList.add('open');
+  activePopup = popup;
+}
+
+document.addEventListener('click', () => {
+  if (activePopup) { activePopup.classList.remove('open'); activePopup = null; }
+});
+
+function toggleSO(nombre, so, checked, key) {
+  let sos = getSOs(nombre);
+  if (checked) { if (!sos.includes(so)) sos.push(so); }
+  else { sos = sos.filter(s => s !== so); }
+  soMap[nombre] = sos;
+  saveSOMap(soMap);
+  // update badges in DOM
+  const badgesEl = document.getElementById('sobadges_' + key);
+  if (badgesEl) {
+    badgesEl.innerHTML = sos.length
+      ? sos.map(s => `<span class="so-badge ${soClass(s)}">${s}</span>`).join('')
+      : `<span class="so-vacio">—</span>`;
+  }
+  // update stat
+  document.getElementById('statSO').textContent = data.filter(r => getSOs(r.nombre).length > 0).length;
+}
+
+let filtered = data.filter(r => !(editsMap[r._key] && editsMap[r._key]._deleted)).map(r => getRecord(r));
+const PAGE = 50;
+let page = 0;
+let selectedKeys = new Set();
+
+function updateSelBar() {
+  const bar = document.getElementById('selBar');
+  const cnt = document.getElementById('selCount');
+  const n = selectedKeys.size;
+  cnt.textContent = n + ' seleccionado' + (n !== 1 ? 's' : '');
+  bar.classList.toggle('visible', n > 0);
+}
+
+function toggleSel(key, checked) {
+  if (checked) selectedKeys.add(key);
+  else selectedKeys.delete(key);
+  updateSelBar();
+  // update chkAll
+  const chkAll = document.getElementById('chkAll');
+  const pageKeys = filtered.slice(page*PAGE, page*PAGE+PAGE).map(r => r._key);
+  const allChecked = pageKeys.length > 0 && pageKeys.every(k => selectedKeys.has(k));
+  chkAll.checked = allChecked;
+  chkAll.indeterminate = !allChecked && pageKeys.some(k => selectedKeys.has(k));
+}
+
+function toggleAll(checked) {
+  const pageKeys = filtered.slice(page*PAGE, page*PAGE+PAGE).map(r => r._key);
+  pageKeys.forEach(k => checked ? selectedKeys.add(k) : selectedKeys.delete(k));
+  render();
+}
+
+function deseleccionarTodo() {
+  selectedKeys.clear();
+  render();
+}
+
+function seleccionarTodaLaBusqueda() {
+  filtered.forEach(r => selectedKeys.add(r._key));
+  render();
+}
+
+// Extract aula group prefix from nombre (letters before digits)
+function getAulaPrefix(nombre) {
+  const m = nombre.match(/^([A-Za-z]+)/);
+  return m ? m[1] : nombre;
+}
+
+function computeAulaGroups(rows) {
+  const map = {};
+  rows.forEach(r => {
+    const k = getAulaPrefix(r.nombre);
+    map[k] = (map[k] || 0) + 1;
+  });
+  return Object.entries(map).sort((a,b) => b[1]-a[1]);
+}
+
+function doSearch() {
+  const n = document.getElementById('searchName').value.trim().toUpperCase();
+  const c = document.getElementById('searchCod').value.trim();
+  const t = document.getElementById('searchToma').value.trim().toUpperCase();
+  const so = document.getElementById('searchSO').value;
+  filtered = data
+    .filter(r => !(editsMap[r._key] && editsMap[r._key]._deleted))
+    .map(r => getRecord(r))
+    .filter(r =>
+      (!n || r.nombre.toUpperCase().includes(n)) &&
+      (!c || String(r.cod).includes(c)) &&
+      (!t || r.toma.toUpperCase().includes(t)) &&
+      (!so || getSOs(r.nombre).includes(so))
+    );
+  page = 0;
+  render();
+}
+
+function clearSearch() {
+  if (!confirm('¿Limpiar todo?\n\n• Filtros de búsqueda\n• SO asignados\n• Ediciones de campos\n• Equipos eliminados\n\nSe restaurará el estado original del archivo.\n\n(Se creará una copia de seguridad automática que podrás recuperar con el botón "↺ Restaurar")')) return;
+  // Backup automático antes de borrar
+  crearBackup('Antes de limpiar todo (' + fmtBackupDate(Date.now()) + ')');
+  // Clear search fields
+  document.getElementById('searchName').value = '';
+  document.getElementById('searchCod').value = '';
+  document.getElementById('searchToma').value = '';
+  document.getElementById('searchSO').value = '';
+  // Clear localStorage
+  soMap = {};    saveSOMap(soMap);
+  editsMap = {}; saveEdits(editsMap);
+  // Reset data keys
+  data.forEach(r => { r._key = r.nombre; });
+  // Clear selection
+  selectedKeys.clear();
+  // Rebuild filtered and render
+  filtered = data.map(r => getRecord(r));
+  page = 0;
+  render();
+}
+
+function toggleAulas() {
+  const body = document.getElementById('aulasBody');
+  const header = document.getElementById('aulasHeader');
+  const toggle = document.getElementById('aulasToggle');
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  header.classList.toggle('open', !isOpen);
+  toggle.textContent = isOpen ? '▼ mostrar' : '▲ ocultar';
+}
+
+function renderAulas(rows) {
+  const groups = computeAulaGroups(rows);
+  document.getElementById('statAulas').textContent = groups.length;
+  const grid = document.getElementById('aulasGrid');
+  grid.innerHTML = groups.map(([name, count]) =>
+    `<div class="aula-item"><span class="aula-name">${name}</span><span class="aula-count">${count}</span></div>`
+  ).join('');
+}
+
+function render() {
+  const tbody = document.getElementById('tbody');
+  const start = page * PAGE;
+  const slice = filtered.slice(start, start + PAGE);
+  const withToma = filtered.filter(r => r.toma && r.toma.trim() !== '').length;
+  const withSO = data.filter(r => getSOs(r.nombre).length > 0).length;
+  document.getElementById('statTotal').textContent = data.length;
+  document.getElementById('statResults').textContent = filtered.length;
+  document.getElementById('statToma').textContent = withToma;
+  document.getElementById('statSO').textContent = withSO;
+  renderAulas(filtered);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE));
+  document.getElementById('pageInfo').textContent = filtered.length > 0 ? 'Pág. ' + (page + 1) + ' / ' + totalPages : '';
+  document.getElementById('emptyMsg').style.display = filtered.length === 0 ? 'block' : 'none';
+  tbody.innerHTML = slice.map(r => {
+    const rec = getRecord(r);
+    const isEdited = !!editsMap[r._key];
+    const isSel = selectedKeys.has(r._key);
+    const tomaCell = rec.toma
+      ? '<td><span class="badge">' + rec.toma + '</span></td>'
+      : '<td class="toma-empty">—</td>';
+    const codCell = rec.cod > 0 ? rec.cod : '—';
+    const editedDot = isEdited ? '<span title="Editado" style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#f59e0b;margin-left:5px;vertical-align:middle;"></span>' : '';
+    const meta = getMeta(rec.nombre);
+    const fotoDot = meta.foto ? '<span title="Tiene foto BIOS" style="margin-left:5px;">📷</span>' : '';
+    const obsDot = meta.obs ? '<span title="Tiene observaciones">📝</span>' : '';
+    return `<tr class="${isSel?'row-selected':''}" onclick="abrirEditModal('${r._key.replace(/'/g,"\\'")}')">
+      <td onclick="event.stopPropagation()"><input type="checkbox" data-key="${r._key.replace(/"/g,'&quot;')}" ${isSel?'checked':''} onchange="toggleSel('${r._key.replace(/'/g,"\\'")}',this.checked)"></td>
+      <td>${rec.nombre}${editedDot}${fotoDot}${obsDot}</td><td>${codCell}</td>${tomaCell}${buildSOCell(rec.nombre)}
+    </tr>`;
+  }).join('');
+  // update select-all state
+  const chkAll = document.getElementById('chkAll');
+  const pageKeys = slice.map(r => r._key);
+  const allChecked = pageKeys.length > 0 && pageKeys.every(k => selectedKeys.has(k));
+  chkAll.checked = allChecked;
+  chkAll.indeterminate = !allChecked && pageKeys.some(k => selectedKeys.has(k));
+  updateSelBar();
+}
+
+function changePage(dir) {
+  const max = Math.max(0, Math.ceil(filtered.length / PAGE) - 1);
+  page = Math.min(max, Math.max(0, page + dir));
+  render();
+}
+
+// ---- Exportar a Excel (.xlsx real, sin dependencias externas) ----
+function crc32(buf){
+  let c, t = crc32.t;
+  if(!t){ t = crc32.t = []; for(let n=0;n<256;n++){ c=n; for(let k=0;k<8;k++) c = c&1 ? 0xEDB88320 ^ (c>>>1) : c>>>1; t[n]=c>>>0; } }
+  let crc = 0xFFFFFFFF;
+  for(let i=0;i<buf.length;i++) crc = (crc>>>8) ^ t[(crc ^ buf[i]) & 0xFF];
+  return (crc ^ 0xFFFFFFFF) >>> 0;
+}
+function strToU8(s){ return new TextEncoder().encode(s); }
+function buildZip(files){
+  // ZIP store (sin compresión) -> .xlsx válido
+  const enc = [], cen = []; let off = 0;
+  const u16 = v => [v&0xFF,(v>>8)&0xFF];
+  const u32 = v => [v&0xFF,(v>>8)&0xFF,(v>>16)&0xFF,(v>>>24)&0xFF];
+  files.forEach(f=>{
+    const name = strToU8(f.name), data = f.data, crc = crc32(data);
+    const lh = [].concat(u32(0x04034b50),u16(20),u16(0),u16(0),u16(0),u16(0),
+      u32(crc),u32(data.length),u32(data.length),u16(name.length),u16(0));
+    enc.push(new Uint8Array(lh), name, data);
+    const ch = [].concat(u32(0x02014b50),u16(20),u16(20),u16(0),u16(0),u16(0),u16(0),
+      u32(crc),u32(data.length),u32(data.length),u16(name.length),u16(0),u16(0),u16(0),u16(0),
+      u32(0),u32(off));
+    cen.push(new Uint8Array(ch), name);
+    off += lh.length + name.length + data.length;
+  });
+  const cenSize = cen.reduce((a,b)=>a+b.length,0);
+  const eocd = new Uint8Array([].concat(u32(0x06054b50),u16(0),u16(0),
+    u16(files.length),u16(files.length),u32(cenSize),u32(off),u16(0)));
+  const parts = [...enc, ...cen, eocd];
+  const total = parts.reduce((a,b)=>a+b.length,0);
+  const out = new Uint8Array(total); let p=0;
+  parts.forEach(x=>{ out.set(x,p); p+=x.length; });
+  return out;
+}
+function xmlEsc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// Decodifica un dataURL base64 a bytes binarios (para incrustar imágenes en xlsx/docx)
+function base64ToBytes(b64){
+  const bin = atob(b64);
+  const bytes = new Uint8Array(bin.length);
+  for (let i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i);
+  return bytes;
+}
+// Calcula el tamaño de visualización de una imagen ajustada dentro de una caja máxima, manteniendo proporción
+function fitBox(w, h, maxW, maxH){
+  w = w||400; h = h||300;
+  const scale = Math.min(maxW/w, maxH/h);
+  return { w: Math.max(1, Math.round(w*scale)), h: Math.max(1, Math.round(h*scale)) };
+}
+
+// Datos comunes para las exportaciones del listado (Excel / Word)
+function _getExportListado(){
+  const tomaFilter = document.getElementById('searchToma').value.trim();
+  const nameFilter = document.getElementById('searchName').value.trim();
+  const codFilter  = document.getElementById('searchCod').value.trim();
+  const soFilter   = document.getElementById('searchSO').value.trim();
+  const filtros = [];
+  if (nameFilter) filtros.push('Nombre: ' + nameFilter);
+  if (codFilter)  filtros.push('Cód.: ' + codFilter);
+  if (tomaFilter) filtros.push('Toma: ' + tomaFilter);
+  if (soFilter)   filtros.push('S.O.: ' + soFilter);
+  const label = (tomaFilter || nameFilter || 'listado').replace(/[^A-Za-z0-9._-]/g,'_');
+  const fecha = new Date().toISOString().slice(0,10);
+  return {
+    rows: filtered,
+    filtrosTexto: filtros.length ? filtros.join(' · ') : 'Ninguno (listado completo)',
+    label, fecha,
+    generado: new Date().toLocaleString('es-ES')
+  };
+}
+
+// ---- Exportación Excel profesional (listado) ----
+function exportExcel(){
+  if(!filtered.length){ alert('No hay registros para exportar.'); return; }
+  const btn = document.getElementById('btnExportExcel');
+  const btnTxt = btn ? btn.textContent : '';
+  if (btn) { btn.textContent = '⏳ Generando...'; btn.disabled = true; }
+
+  setTimeout(() => {
+    try {
+      const d = _getExportListado();
+      const GRANATE = 'FF8B1A2E';
+      const PHOTO_COL = 2; // columna C (0-based) = Foto BIOS
+      const MAXBOX = { w:130, h:92 }; // px
+
+      // Índices de estilo (definidos en cellXfs más abajo)
+      const S = { title:1, subtitle:2, label:3, value:4, header:5, dataOdd:6, dataEven:7, footer:8, obsOdd:9, obsEven:10 };
+      const rows = [];
+      rows.push({ cells:[{v:'INVENTARIO DE EQUIPOS', s:S.title}], height:26, merge:'A1:D1' });
+      rows.push({ cells:[{v:'CSIRC · Apoyo a la Docencia · Universidad de Granada', s:S.subtitle}], height:18, merge:'A2:D2' });
+      rows.push({ cells:[] });
+      rows.push({ cells:[{v:'Generado:', s:S.label},{v:d.generado, s:S.value}] });
+      rows.push({ cells:[{v:'Total registros:', s:S.label},{v:String(d.rows.length), s:S.value}] });
+      rows.push({ cells:[{v:'Filtros aplicados:', s:S.label},{v:d.filtrosTexto, s:S.value}] });
+      rows.push({ cells:[] });
+      const headerRowIdx = rows.length; // 0-based, la fila de cabecera se añade a continuación
+      rows.push({ cells:[
+        {v:'Nombre', s:S.header},
+        {v:'Sistema Operativo', s:S.header},
+        {v:'Foto BIOS', s:S.header},
+        {v:'Observaciones', s:S.header}
+      ], height:20 });
+
+      // Recopilar imágenes a incrustar (una por equipo con foto BIOS guardada)
+      const mediaFiles = [];
+      const drawingRels = [];
+      let anchorsXml = '';
+      let imgCounter = 0;
+
+      d.rows.forEach((r,i) => {
+        const st = i%2===0 ? S.dataOdd : S.dataEven;
+        const stObs = i%2===0 ? S.obsOdd : S.obsEven;
+        const meta = getMeta(r.nombre);
+        rows.push({ cells:[
+          {v:r.nombre, s:st},
+          {v:getSOs(r.nombre).join(', ')||'—', s:st},
+          {v:'', s:st},
+          {v:meta.obs||'', s:stObs}
+        ]});
+        if (meta.foto) {
+          imgCounter++;
+          const base64 = (meta.foto.split(',')[1]) || '';
+          mediaFiles.push({ name:`xl/media/image${imgCounter}.jpeg`, data: base64ToBytes(base64) });
+          const rId = `rIdImg${imgCounter}`;
+          drawingRels.push({ id: rId, target: `../media/image${imgCounter}.jpeg` });
+          const box = fitBox(meta.fotoW, meta.fotoH, MAXBOX.w, MAXBOX.h);
+          const cx = box.w * 9525, cy = box.h * 9525;
+          const rowIdx0 = rows.length - 1; // fila recién insertada (0-based)
+          anchorsXml += `<xdr:oneCellAnchor><xdr:from><xdr:col>${PHOTO_COL}</xdr:col><xdr:colOff>9525</xdr:colOff><xdr:row>${rowIdx0}</xdr:row><xdr:rowOff>9525</xdr:rowOff></xdr:from><xdr:ext cx="${cx}" cy="${cy}"/><xdr:pic><xdr:nvPicPr><xdr:cNvPr id="${imgCounter+1}" name="foto${imgCounter}"/><xdr:cNvPicPr/></xdr:nvPicPr><xdr:blipFill><a:blip r:embed="${rId}"/><a:stretch><a:fillRect/></a:stretch></xdr:blipFill><xdr:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${cx}" cy="${cy}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></xdr:spPr></xdr:pic><xdr:clientData/></xdr:oneCellAnchor>`;
+          rows[rows.length-1].height = 74;
+        }
+      });
+
+      const lastDataRow = rows.length;
+      rows.push({ cells:[] });
+      rows.push({ cells:[{v:`CSIRC · Apoyo a la Docencia · Universidad de Granada · ${new Date().toLocaleDateString('es-ES')}`, s:S.footer}], merge:`A${rows.length+1}:D${rows.length+1}` });
+
+      function buildSheetXml(rowDefs){
+        const merges = [];
+        let body = '';
+        rowDefs.forEach((row, ri) => {
+          const rNum = ri + 1;
+          let cells = '';
+          row.cells.forEach((cell, ci) => {
+            const ref = String.fromCharCode(65+ci) + rNum;
+            const sAttr = cell.s ? ` s="${cell.s}"` : '';
+            if (cell.n) cells += `<c r="${ref}"${sAttr}><v>${cell.v}</v></c>`;
+            else cells += `<c r="${ref}"${sAttr} t="inlineStr"><is><t xml:space="preserve">${xmlEsc(cell.v)}</t></is></c>`;
+          });
+          const htAttr = row.height ? ` ht="${row.height}" customHeight="1"` : '';
+          body += cells ? `<row r="${rNum}"${htAttr}>${cells}</row>` : `<row r="${rNum}"${htAttr}/>`;
+          if (row.merge) merges.push(row.merge);
+        });
+        const mergeXml = merges.length ? `<mergeCells count="${merges.length}">${merges.map(m=>`<mergeCell ref="${m}"/>`).join('')}</mergeCells>` : '';
+        const freezeRow = headerRowIdx + 1;
+        const panes = `<sheetViews><sheetView tabSelected="1" workbookViewId="0"><pane ySplit="${freezeRow}" topLeftCell="A${freezeRow+1}" activePane="bottomLeft" state="frozen"/><selection pane="bottomLeft" activeCell="A${freezeRow+1}" sqref="A${freezeRow+1}"/></sheetView></sheetViews>`;
+        const cols = `<cols><col min="1" max="1" width="32" customWidth="1"/><col min="2" max="2" width="20" customWidth="1"/><col min="3" max="3" width="20" customWidth="1"/><col min="4" max="4" width="42" customWidth="1"/></cols>`;
+        const autoFilter = `<autoFilter ref="A${freezeRow}:D${lastDataRow}"/>`;
+        const drawingTag = imgCounter > 0 ? `<drawing r:id="rIdDrawing"/>` : '';
+        return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">${panes}${cols}<sheetData>${body}</sheetData>${autoFilter}${mergeXml}${drawingTag}</worksheet>`;
+      }
+
+      const stylesXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+<fonts count="7">
+<font><sz val="11"/><name val="Calibri"/></font>
+<font><b/><sz val="16"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font>
+<font><sz val="10"/><color rgb="FFF2E6E8"/><name val="Calibri"/></font>
+<font><b/><sz val="10"/><color rgb="FF666666"/><name val="Calibri"/></font>
+<font><sz val="10"/><color rgb="FF333333"/><name val="Calibri"/></font>
+<font><b/><sz val="10"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font>
+<font><sz val="9"/><color rgb="FFAAAAAA"/><name val="Calibri"/></font>
+</fonts>
+<fills count="4">
+<fill><patternFill patternType="none"/></fill>
+<fill><patternFill patternType="gray125"/></fill>
+<fill><patternFill patternType="solid"><fgColor rgb="${GRANATE}"/><bgColor indexed="64"/></patternFill></fill>
+<fill><patternFill patternType="solid"><fgColor rgb="FFFAFAF8"/><bgColor indexed="64"/></patternFill></fill>
+</fills>
+<borders count="2">
+<border><left/><right/><top/><bottom/><diagonal/></border>
+<border><left style="thin"><color rgb="FFE0DEDA"/></left><right style="thin"><color rgb="FFE0DEDA"/></right><top style="thin"><color rgb="FFE0DEDA"/></top><bottom style="thin"><color rgb="FFE0DEDA"/></bottom><diagonal/></border>
+</borders>
+<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>
+<cellXfs count="11">
+<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>
+<xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1" applyAlignment="1"><alignment vertical="center" indent="1"/></xf>
+<xf numFmtId="0" fontId="2" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1" applyAlignment="1"><alignment vertical="center" indent="1"/></xf>
+<xf numFmtId="0" fontId="3" fillId="0" borderId="0" xfId="0" applyFont="1"/>
+<xf numFmtId="0" fontId="4" fillId="0" borderId="0" xfId="0" applyFont="1"/>
+<xf numFmtId="0" fontId="5" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment vertical="center" indent="1"/></xf>
+<xf numFmtId="0" fontId="4" fillId="3" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment vertical="center" indent="1"/></xf>
+<xf numFmtId="0" fontId="4" fillId="0" borderId="1" xfId="0" applyFont="1" applyBorder="1" applyAlignment="1"><alignment vertical="center" indent="1"/></xf>
+<xf numFmtId="0" fontId="6" fillId="0" borderId="0" xfId="0" applyFont="1"/>
+<xf numFmtId="0" fontId="4" fillId="3" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment vertical="top" wrapText="1" indent="1"/></xf>
+<xf numFmtId="0" fontId="4" fillId="0" borderId="1" xfId="0" applyFont="1" applyBorder="1" applyAlignment="1"><alignment vertical="top" wrapText="1" indent="1"/></xf>
+</cellXfs>
+</styleSheet>`;
+
+      const ct  = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Default Extension="jpeg" ContentType="image/jpeg"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>${imgCounter>0?'<Override PartName="/xl/drawings/drawing1.xml" ContentType="application/vnd.openxmlformats-officedocument.drawing+xml"/>':''}</Types>`;
+      const rels = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`;
+      const wb   = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Inventario" sheetId="1" r:id="rId1"/></sheets></workbook>`;
+      const wbR  = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`;
+
+      const zipFiles = [
+        {name:'[Content_Types].xml', data:strToU8(ct)},
+        {name:'_rels/.rels', data:strToU8(rels)},
+        {name:'xl/workbook.xml', data:strToU8(wb)},
+        {name:'xl/_rels/workbook.xml.rels', data:strToU8(wbR)},
+        {name:'xl/styles.xml', data:strToU8(stylesXml)},
+        {name:'xl/worksheets/sheet1.xml', data:strToU8(buildSheetXml(rows))},
+      ];
+
+      if (imgCounter > 0) {
+        const sheetRels = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rIdDrawing" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/drawing" Target="../drawings/drawing1.xml"/></Relationships>`;
+        const drawingXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">${anchorsXml}</xdr:wsDr>`;
+        const drawingRelsXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${drawingRels.map(r=>`<Relationship Id="${r.id}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="${r.target}"/>`).join('')}</Relationships>`;
+        zipFiles.push(
+          {name:'xl/worksheets/_rels/sheet1.xml.rels', data:strToU8(sheetRels)},
+          {name:'xl/drawings/drawing1.xml', data:strToU8(drawingXml)},
+          {name:'xl/drawings/_rels/drawing1.xml.rels', data:strToU8(drawingRelsXml)},
+          ...mediaFiles
+        );
+      }
+
+      const zip = buildZip(zipFiles);
+
+      const fname = `inventario_${d.label}_${d.fecha}.xlsx`;
+      const blob = new Blob([zip], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = fname;
+      document.body.appendChild(a); a.click();
+      setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+    } finally {
+      if (btn) { btn.textContent = btnTxt; btn.disabled = false; }
+    }
+  }, 10);
+}
+
+// ---- Exportación Word profesional (listado) ----
+function exportWord(){
+  if(!filtered.length){ alert('No hay registros para exportar.'); return; }
+  const btn = document.getElementById('btnExportWord');
+  const btnTxt = btn ? btn.textContent : '';
+  if (btn) { btn.textContent = '⏳ Generando...'; btn.disabled = true; }
+
+  setTimeout(() => {
+    try {
+      const d = _getExportListado();
+      function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+      function escBr(s){
+        const lines = String(s||'').split('\n');
+        return lines.map((line,i)=> (i>0?'<w:br/>':'') + `<w:t xml:space="preserve">${esc(line)}</w:t>`).join('');
+      }
+      const GRANATE = '8B1A2E';
+      const colW = [2200, 1800, 2200, 3000];
+      const MAXBOX = { in: 1.05, cy: 0.8 }; // pulgadas, caja máx. para la foto
+
+      let docBody = '';
+      // Banner de marca + título sobre fondo granate UGR
+      docBody += `<w:p><w:pPr><w:shd w:val="clear" w:color="auto" w:fill="${GRANATE}"/><w:spacing w:before="0" w:after="0"/></w:pPr><w:r><w:rPr><w:color w:val="FFFFFF"/><w:sz w:val="16"/></w:rPr><w:t>CSIRC · APOYO A LA DOCENCIA · UNIVERSIDAD DE GRANADA</w:t></w:r></w:p>`;
+      docBody += `<w:p><w:pPr><w:shd w:val="clear" w:color="auto" w:fill="${GRANATE}"/><w:spacing w:before="0" w:after="0"/></w:pPr><w:r><w:rPr><w:b/><w:color w:val="FFFFFF"/><w:sz w:val="36"/></w:rPr><w:t>Inventario de Equipos</w:t></w:r></w:p>`;
+      docBody += `<w:p><w:pPr><w:shd w:val="clear" w:color="auto" w:fill="${GRANATE}"/><w:spacing w:before="0" w:after="120"/></w:pPr><w:r><w:rPr><w:color w:val="FFFFFF"/><w:sz w:val="4"/></w:rPr><w:t xml:space="preserve"> </w:t></w:r></w:p>`;
+      docBody += `<w:p><w:r><w:t xml:space="preserve"> </w:t></w:r></w:p>`;
+
+      [`Generado: ${d.generado}`, `Total registros: ${d.rows.length}`, `Filtros aplicados: ${d.filtrosTexto}`].forEach(m=>{
+        docBody += `<w:p><w:r><w:rPr><w:sz w:val="18"/><w:color w:val="666666"/></w:rPr><w:t>${esc(m)}</w:t></w:r></w:p>`;
+      });
+      docBody += `<w:p><w:r><w:t xml:space="preserve"> </w:t></w:r></w:p>`;
+
+      // Recopilar imágenes a incrustar
+      const mediaFiles = [];
+      const imageRels = [];
+      let imgCounter = 0;
+
+      // Tabla del listado
+      let tableBody = `<w:tbl><w:tblPr><w:tblStyle w:val="TableGrid"/><w:tblW w:w="9200" w:type="dxa"/></w:tblPr><w:tblGrid>${colW.map(w=>`<w:gridCol w:w="${w}"/>`).join('')}</w:tblGrid>`;
+      tableBody += `<w:tr>${['Nombre','Sistema Operativo','Foto BIOS','Observaciones'].map((h,i)=>`<w:tc><w:tcPr><w:tcW w:w="${colW[i]}" w:type="dxa"/><w:shd w:val="clear" w:color="auto" w:fill="${GRANATE}"/></w:tcPr><w:p><w:r><w:rPr><w:b/><w:color w:val="FFFFFF"/><w:sz w:val="18"/></w:rPr><w:t>${esc(h)}</w:t></w:r></w:p></w:tc>`).join('')}</w:tr>`;
+      d.rows.forEach((r,i) => {
+        const fill = i%2===0 ? 'FAFAF8' : 'FFFFFF';
+        const meta = getMeta(r.nombre);
+
+        let fotoCellContent;
+        if (meta.foto) {
+          imgCounter++;
+          const base64 = (meta.foto.split(',')[1]) || '';
+          mediaFiles.push({ name:`word/media/image${imgCounter}.jpeg`, data: base64ToBytes(base64) });
+          const rId = `rIdImg${imgCounter}`;
+          imageRels.push({ id: rId, target: `media/image${imgCounter}.jpeg` });
+          const box = fitBox(meta.fotoW, meta.fotoH, MAXBOX.in*96, MAXBOX.cy*96); // trabajar en px (96dpi) y convertir a EMU
+          const cx = Math.round(box.w * 9525), cy = Math.round(box.h * 9525);
+          fotoCellContent = `<w:p><w:r><w:drawing><wp:inline distT="0" distB="0" distL="0" distR="0"><wp:extent cx="${cx}" cy="${cy}"/><wp:effectExtent l="0" t="0" r="0" b="0"/><wp:docPr id="${imgCounter}" name="foto${imgCounter}"/><wp:cNvGraphicFramePr><a:graphicFrameLocks xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" noChangeAspect="1"/></wp:cNvGraphicFramePr><a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:nvPicPr><pic:cNvPr id="${imgCounter}" name="foto${imgCounter}"/><pic:cNvPicPr/></pic:nvPicPr><pic:blipFill><a:blip r:embed="${rId}"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill><pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${cx}" cy="${cy}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r></w:p>`;
+        } else {
+          fotoCellContent = `<w:p><w:r><w:rPr><w:sz w:val="18"/><w:color w:val="BBBBBB"/></w:rPr><w:t>—</w:t></w:r></w:p>`;
+        }
+
+        const nombreTc = `<w:tc><w:tcPr><w:tcW w:w="${colW[0]}" w:type="dxa"/><w:shd w:val="clear" w:color="auto" w:fill="${fill}"/></w:tcPr><w:p><w:r><w:rPr><w:b/><w:sz w:val="18"/></w:rPr><w:t xml:space="preserve">${esc(r.nombre)}</w:t></w:r></w:p></w:tc>`;
+        const soTc = `<w:tc><w:tcPr><w:tcW w:w="${colW[1]}" w:type="dxa"/><w:shd w:val="clear" w:color="auto" w:fill="${fill}"/></w:tcPr><w:p><w:r><w:rPr><w:sz w:val="18"/></w:rPr><w:t xml:space="preserve">${esc(getSOs(r.nombre).join(', ')||'—')}</w:t></w:r></w:p></w:tc>`;
+        const fotoTc = `<w:tc><w:tcPr><w:tcW w:w="${colW[2]}" w:type="dxa"/><w:shd w:val="clear" w:color="auto" w:fill="${fill}"/><w:vAlign w:val="center"/></w:tcPr>${fotoCellContent}</w:tc>`;
+        const obsTc = `<w:tc><w:tcPr><w:tcW w:w="${colW[3]}" w:type="dxa"/><w:shd w:val="clear" w:color="auto" w:fill="${fill}"/></w:tcPr><w:p><w:r><w:rPr><w:sz w:val="17"/></w:rPr>${meta.obs?escBr(meta.obs):'<w:t xml:space="preserve">—</w:t>'}</w:r></w:p></w:tc>`;
+
+        tableBody += `<w:tr>${nombreTc}${soTc}${fotoTc}${obsTc}</w:tr>`;
+      });
+      tableBody += `</w:tbl>`;
+      docBody += tableBody;
+
+      docBody += `<w:p><w:r><w:t xml:space="preserve"> </w:t></w:r></w:p>`;
+      docBody += `<w:p><w:pPr><w:pBdr><w:top w:val="single" w:sz="4" w:space="6" w:color="E8E6E2"/></w:pBdr></w:pPr><w:r><w:rPr><w:sz w:val="16"/><w:color w:val="AAAAAA"/></w:rPr><w:t>CSIRC · Apoyo a la Docencia · Universidad de Granada · ${new Date().toLocaleDateString('es-ES')}</w:t></w:r></w:p>`;
+
+      const docXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"><w:body>${docBody}<w:sectPr><w:pgSz w:w="12240" w:h="15840"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440"/></w:sectPr></w:body></w:document>`;
+      const styles = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:style w:type="paragraph" w:styleId="Normal"><w:name w:val="Normal"/><w:rPr><w:sz w:val="20"/></w:rPr></w:style><w:style w:type="paragraph" w:styleId="Heading1"><w:name w:val="heading 1"/><w:basedOn w:val="Normal"/><w:pPr><w:spacing w:before="240" w:after="120"/></w:pPr><w:rPr><w:b/><w:sz w:val="32"/><w:color w:val="1a1a1a"/></w:rPr></w:style><w:style w:type="paragraph" w:styleId="Heading2"><w:name w:val="heading 2"/><w:basedOn w:val="Normal"/><w:pPr><w:spacing w:before="180" w:after="80"/></w:pPr><w:rPr><w:b/><w:sz w:val="24"/><w:color w:val="${GRANATE}"/></w:rPr></w:style><w:style w:type="table" w:styleId="TableGrid"><w:name w:val="Table Grid"/><w:tblPr><w:tblBorders><w:top w:val="single" w:sz="4" w:color="CCCCCC"/><w:left w:val="single" w:sz="4" w:color="CCCCCC"/><w:bottom w:val="single" w:sz="4" w:color="CCCCCC"/><w:right w:val="single" w:sz="4" w:color="CCCCCC"/><w:insideH w:val="single" w:sz="4" w:color="CCCCCC"/><w:insideV w:val="single" w:sz="4" w:color="CCCCCC"/></w:tblBorders></w:tblPr></w:style></w:styles>`;
+      const ct    = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Default Extension="jpeg" ContentType="image/jpeg"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/></Types>`;
+      const rels  = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>`;
+      const wRels = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>${imageRels.map(r=>`<Relationship Id="${r.id}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="${r.target}"/>`).join('')}</Relationships>`;
+
+      const zip = buildZip([
+        {name:'[Content_Types].xml', data:strToU8(ct)},
+        {name:'_rels/.rels', data:strToU8(rels)},
+        {name:'word/document.xml', data:strToU8(docXml)},
+        {name:'word/styles.xml', data:strToU8(styles)},
+        {name:'word/_rels/document.xml.rels', data:strToU8(wRels)},
+        ...mediaFiles
+      ]);
+
+      const fname = `inventario_${d.label}_${d.fecha}.docx`;
+      const blob = new Blob([zip], {type:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = fname;
+      document.body.appendChild(a); a.click();
+      setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+    } finally {
+      if (btn) { btn.textContent = btnTxt; btn.disabled = false; }
+    }
+  }, 10);
+}
+
+document.getElementById('searchName').addEventListener('input', doSearch);
+document.getElementById('searchCod').addEventListener('input', doSearch);
+document.getElementById('searchToma').addEventListener('input', doSearch);
+document.getElementById('searchSO').addEventListener('change', doSearch);
+render();
+</script>
+<!-- Modal editar PC -->
+<div class="edit-modal-overlay" id="editModal">
+  <div class="edit-modal" onclick="event.stopPropagation()">
+    <h2 id="editModalTitle">Editar equipo</h2>
+    <input type="hidden" id="edit_idx">
+    <div style="display:flex;gap:12px;">
+      <div class="edit-field" style="flex:1.4">
+        <label>Nombre</label>
+        <input id="edit_nombre" type="text">
+      </div>
+      <div class="edit-field" style="flex:1">
+        <label>Cód. inventario</label>
+        <input id="edit_cod" type="text">
+      </div>
+    </div>
+    <div class="edit-field">
+      <label>Toma</label>
+      <input id="edit_toma" type="text" placeholder="Ej: R2.0.110">
+    </div>
+    <div class="edit-field">
+      <label>Sistema Operativo</label>
+      <div class="edit-so-checks" id="edit_so_checks">
+        <label><input type="checkbox" value="Windows 10"> Windows 10</label>
+        <label><input type="checkbox" value="Windows 11"> Windows 11</label>
+        <label><input type="checkbox" value="Linux"> Linux</label>
+        <label><input type="checkbox" value="Otro"> Otro</label>
+      </div>
+    </div>
+    <div class="edit-field">
+      <label>Foto BIOS</label>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <img id="edit_foto_preview" style="display:none;width:90px;height:68px;object-fit:cover;border-radius:4px;border:1px solid #d8d6d2;">
+        <div id="edit_foto_empty" style="width:90px;height:68px;border:1px dashed #ccc;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#bbb;font-size:1.4rem;">🖼</div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <input type="file" id="edit_foto_input" accept="image/*" style="font-size:0.75rem;max-width:200px;" onchange="handleFotoSelect(event)">
+          <button type="button" class="btn btn-secondary" id="edit_foto_remove" style="display:none;padding:4px 10px;font-size:0.72rem;" onclick="quitarFotoBios()">🗑 Quitar foto</button>
+        </div>
+      </div>
+    </div>
+    <div class="edit-field">
+      <label>Observaciones</label>
+      <textarea id="edit_obs" rows="3" placeholder="Notas sobre el equipo (incidencias, piezas cambiadas, etc.)" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:3px;font-family:'IBM Plex Mono',monospace;font-size:0.83rem;resize:vertical;box-sizing:border-box;"></textarea>
+    </div>
+    <div class="edit-modal-footer">
+      <button class="btn-danger" onclick="eliminarPC()">🗑 Eliminar</button>
+      <div class="right">
+        <button class="btn btn-secondary" onclick="cerrarEditModal()">Cancelar</button>
+        <button class="btn btn-primary" onclick="guardarPC()">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal informe -->
+<div id="informeModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:10000;align-items:center;justify-content:center;overflow-y:auto;padding:1rem 0;">
+  <div style="background:#fff;border-radius:6px;padding:2rem;max-width:680px;width:92%;box-shadow:0 8px 32px rgba(0,0,0,0.18);font-family:'IBM Plex Sans',sans-serif;margin:auto;">
+    <h2 id="inf_modal_title" style="font-family:'IBM Plex Mono',monospace;font-size:1rem;font-weight:600;margin-bottom:1.25rem;border-left:3px solid #1a1a1a;padding-left:0.75rem;">Configurar informe</h2>
+
+    <!-- Cabecera -->
+    <div style="display:flex;flex-direction:column;gap:0.75rem;margin-bottom:1rem;">
+      <div>
+        <label style="font-size:0.65rem;color:#555;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;font-family:'IBM Plex Mono',monospace;display:block;margin-bottom:3px;">Título</label>
+        <input id="inf_titulo" type="text" value="Informe de Equipos — CSIRC / UGR" style="width:100%;height:34px;padding:0 10px;border:1px solid #ccc;border-radius:3px;font-family:'IBM Plex Mono',monospace;font-size:0.83rem;">
+      </div>
+      <div style="display:flex;gap:10px;">
+        <div style="flex:1;">
+          <label style="font-size:0.65rem;color:#555;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;font-family:'IBM Plex Mono',monospace;display:block;margin-bottom:3px;">Fecha</label>
+          <input id="inf_fecha" type="text" style="width:100%;height:34px;padding:0 10px;border:1px solid #ccc;border-radius:3px;font-family:'IBM Plex Mono',monospace;font-size:0.83rem;">
+        </div>
+        <div style="flex:1;">
+          <label style="font-size:0.65rem;color:#555;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;font-family:'IBM Plex Mono',monospace;display:block;margin-bottom:3px;">Responsable</label>
+          <input id="inf_responsable" type="text" placeholder="Nombre o departamento" style="width:100%;height:34px;padding:0 10px;border:1px solid #ccc;border-radius:3px;font-family:'IBM Plex Mono',monospace;font-size:0.83rem;">
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabla de equipos con conclusiones -->
+    <div style="margin-bottom:0.5rem;">
+      <label style="font-size:0.65rem;color:#555;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;font-family:'IBM Plex Mono',monospace;">Equipos incluidos — Conclusión por equipo</label>
+    </div>
+    <div style="border:1px solid #d8d6d2;border-radius:4px;overflow:hidden;margin-bottom:1rem;max-height:280px;overflow-y:auto;">
+      <table style="width:100%;border-collapse:collapse;font-size:0.8rem;font-family:'IBM Plex Mono',monospace;">
+        <thead>
+          <tr style="background:#1a1a1a;">
+            <th style="padding:7px 12px;text-align:left;color:#f2f1ee;font-size:0.65rem;text-transform:uppercase;letter-spacing:0.06em;width:30%;">Nombre PC</th>
+            <th style="padding:7px 12px;text-align:left;color:#f2f1ee;font-size:0.65rem;text-transform:uppercase;letter-spacing:0.06em;width:22%;">Sistema Operativo</th>
+            <th style="padding:7px 12px;text-align:left;color:#f2f1ee;font-size:0.65rem;text-transform:uppercase;letter-spacing:0.06em;width:48%;">Conclusión</th>
+          </tr>
+        </thead>
+        <tbody id="inf_equipos_tbody"></tbody>
+      </table>
+    </div>
+
+    <!-- Conclusión general -->
+    <div style="margin-bottom:1.25rem;">
+      <label style="font-size:0.65rem;color:#555;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;font-family:'IBM Plex Mono',monospace;display:block;margin-bottom:3px;">Conclusión general del informe</label>
+      <textarea id="inf_conclusion_general" rows="3" placeholder="Escribe aquí las conclusiones generales del informe..." style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:3px;font-family:'IBM Plex Mono',monospace;font-size:0.83rem;resize:vertical;"></textarea>
+    </div>
+
+    <!-- Botones -->
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+      <div style="display:flex;gap:8px;">
+        <button onclick="cerrarInforme()" style="height:36px;padding:0 16px;border-radius:3px;border:1px solid #ccc;background:#fff;font-family:'IBM Plex Mono',monospace;font-size:0.78rem;cursor:pointer;">Cancelar</button>
+        <button onclick="resetInforme()" title="Vaciar todas las conclusiones y volver a empezar" style="height:36px;padding:0 14px;border-radius:3px;border:1px solid #e57a00;background:#fff;color:#e57a00;font-family:'IBM Plex Mono',monospace;font-size:0.75rem;font-weight:600;cursor:pointer;">↺ Restaurar</button>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button onclick="generarInforme('html')" style="height:36px;padding:0 14px;border-radius:3px;border:1px solid #1a1a1a;background:#fff;color:#1a1a1a;font-family:'IBM Plex Mono',monospace;font-size:0.75rem;font-weight:600;cursor:pointer;">🌐 HTML / PDF</button>
+        <button onclick="generarInforme('excel')" style="height:36px;padding:0 14px;border-radius:3px;border:1px solid #217346;background:#fff;color:#217346;font-family:'IBM Plex Mono',monospace;font-size:0.75rem;font-weight:600;cursor:pointer;">📊 Excel</button>
+        <button onclick="generarInforme('word')" id="btnWord" style="height:36px;padding:0 14px;border-radius:3px;border:1px solid #2b579a;background:#2b579a;color:#fff;font-family:'IBM Plex Mono',monospace;font-size:0.75rem;font-weight:600;cursor:pointer;">📝 Word</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal asignar SO en lote -->
+<div class="edit-modal-overlay" id="soLoteModal">
+  <div class="edit-modal" onclick="event.stopPropagation()" style="max-width:420px;">
+    <h2>Asignar sistema operativo</h2>
+    <p class="lote-count" id="soLoteCount"></p>
+    <div class="edit-field">
+      <label>Sistemas operativos a aplicar</label>
+      <div class="edit-so-checks" id="soLote_checks">
+        <label><input type="checkbox" value="Windows 10"> Windows 10</label>
+        <label><input type="checkbox" value="Windows 11"> Windows 11</label>
+        <label><input type="checkbox" value="Linux"> Linux</label>
+        <label><input type="checkbox" value="Otro"> Otro</label>
+      </div>
+    </div>
+    <div class="edit-field">
+      <label>Modo</label>
+      <div class="lote-radio-row">
+        <label><input type="radio" name="soLoteModo" value="reemplazar" checked> Reemplazar SO actual</label>
+        <label><input type="radio" name="soLoteModo" value="anadir"> Añadir a los existentes</label>
+      </div>
+    </div>
+    <div class="edit-modal-footer">
+      <div></div>
+      <div class="right">
+        <button class="btn btn-secondary" onclick="cerrarSOLoteModal()">Cancelar</button>
+        <button class="btn btn-primary" onclick="aplicarSOLote()">Aplicar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal editar en lote (toma) -->
+<div class="edit-modal-overlay" id="editLoteModal">
+  <div class="edit-modal" onclick="event.stopPropagation()" style="max-width:460px;">
+    <h2>Editar en lote</h2>
+    <p class="lote-count" id="editLoteCount"></p>
+    <div class="edit-field">
+      <label>Nueva toma para los equipos seleccionados</label>
+      <input id="lote_toma" type="text" placeholder="Ej: R2.0.110">
+    </div>
+    <div class="lote-check-row">
+      <input type="checkbox" id="lote_toma_clear" onchange="document.getElementById('lote_toma').disabled=this.checked; if(this.checked) document.getElementById('lote_toma').value='';">
+      <label for="lote_toma_clear">Vaciar toma (dejar sin asignar)</label>
+    </div>
+    <p class="lote-hint">La edición individual de nombre y código de inventario sigue disponible al pulsar sobre cada equipo.</p>
+    <div class="edit-modal-footer">
+      <div></div>
+      <div class="right">
+        <button class="btn btn-secondary" onclick="cerrarEditLoteModal()">Cancelar</button>
+        <button class="btn btn-primary" onclick="aplicarEditLote()">Aplicar a seleccionados</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal subir modificaciones (CSV) -->
+<div class="edit-modal-overlay" id="importModal">
+  <div class="edit-modal" onclick="event.stopPropagation()" style="max-width:580px;">
+    <h2>Subir modificaciones (CSV)</h2>
+    <p class="lote-hint" style="margin-bottom:0.9rem;">
+      Sube un archivo CSV con columnas <b>Nombre, CodInventario, Toma, SO</b> (varios SO separados por " / "). Las filas se emparejan por <b>Nombre</b>. Deja una celda en blanco para no modificar ese campo.
+    </p>
+    <div class="import-actions">
+      <button class="btn btn-secondary" onclick="descargarPlantillaCSV()">⤓ Descargar plantilla CSV</button>
+      <label class="btn btn-primary import-upload-label" style="cursor:pointer;">
+        ⬆ Seleccionar archivo
+        <input type="file" id="importFileInput" accept=".csv,text/csv" style="display:none;" onchange="handleImportFile(event)">
+      </label>
+    </div>
+    <div id="importPreviewWrap" style="display:none;">
+      <div class="import-preview-summary" id="importPreviewSummary"></div>
+      <div class="import-preview-table-wrap">
+        <table>
+          <thead><tr>
+            <th>Nombre</th><th>Cód.</th><th>Toma</th><th>SO</th><th>Estado</th>
+          </tr></thead>
+          <tbody id="importPreviewBody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="edit-modal-footer">
+      <div id="importApplyHint" style="font-size:0.72rem;color:#999;font-family:'IBM Plex Mono',monospace;">Selecciona un archivo CSV con coincidencias para poder aplicar</div>
+      <div class="right">
+        <button class="btn btn-secondary" onclick="cerrarImportModal()">Cancelar</button>
+        <button class="btn btn-primary" id="btnAplicarImport" onclick="aplicarImport()" disabled title="Sube primero un archivo CSV con al menos un equipo encontrado">Aplicar cambios</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal restaurar copia de seguridad -->
+<div class="edit-modal-overlay" id="restoreModal">
+  <div class="edit-modal" onclick="event.stopPropagation()" style="max-width:560px;">
+    <h2>Restaurar copia de seguridad</h2>
+    <p class="lote-hint" style="margin-bottom:0.9rem;">
+      Antes de cada operación en lote (asignar SO, editar en lote, importar CSV, eliminar o limpiar) se guarda automáticamente una copia de seguridad local. Puedes recuperar cualquiera de las últimas 12 copias.
+    </p>
+    <div style="margin-bottom:0.9rem;">
+      <button class="btn btn-secondary" style="width:100%;" onclick="crearBackupManual()">💾 Guardar copia de seguridad ahora</button>
+    </div>
+    <div id="restoreListWrap" style="border:1px solid #d8d6d2;border-radius:4px;max-height:320px;overflow:auto;">
+      <div id="restoreList"></div>
+    </div>
+    <div class="edit-modal-footer">
+      <div></div>
+      <div class="right">
+        <button class="btn btn-secondary" onclick="cerrarRestoreModal()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ---- Edit PC modal ----
+function abrirEditModal(key) {
+  const base = data.find(r => r._key === key);
+  if (!base) return;
+  const rec = getRecord(base);
+  document.getElementById('editModalTitle').textContent = 'Editar — ' + rec.nombre;
+  document.getElementById('edit_idx').value = key;
+  document.getElementById('edit_nombre').value = rec.nombre;
+  document.getElementById('edit_cod').value = rec.cod > 0 ? rec.cod : '';
+  document.getElementById('edit_toma').value = rec.toma || '';
+  // SO checkboxes
+  const sos = getSOs(rec.nombre);
+  document.querySelectorAll('#edit_so_checks input[type=checkbox]').forEach(cb => {
+    cb.checked = sos.includes(cb.value);
+  });
+  // Foto BIOS + Observaciones
+  _pendingFoto = undefined;
+  document.getElementById('edit_foto_input').value = '';
+  document.getElementById('edit_obs').value = '';
+  const meta = getMeta(rec.nombre);
+  document.getElementById('edit_obs').value = meta.obs || '';
+  const prev = document.getElementById('edit_foto_preview');
+  if (meta.foto) {
+    prev.src = meta.foto; prev.style.display = 'block';
+    document.getElementById('edit_foto_empty').style.display = 'none';
+    document.getElementById('edit_foto_remove').style.display = 'inline-block';
+  } else {
+    prev.style.display = 'none'; prev.src = '';
+    document.getElementById('edit_foto_empty').style.display = 'flex';
+    document.getElementById('edit_foto_remove').style.display = 'none';
+  }
+  document.getElementById('editModal').classList.add('open');
+}
+
+function cerrarEditModal() {
+  document.getElementById('editModal').classList.remove('open');
+}
+
+// ---- Foto BIOS: selección, compresión (canvas) y eliminación ----
+let _pendingFoto; // undefined = sin cambios; null = eliminar; {dataUrl,w,h} = nueva foto
+function handleFotoSelect(e) {
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    const img = new Image();
+    img.onload = function() {
+      const MAXDIM = 900;
+      let w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
+      const scale = Math.min(1, MAXDIM / Math.max(w, h));
+      w = Math.max(1, Math.round(w * scale));
+      h = Math.max(1, Math.round(h * scale));
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.72);
+      _pendingFoto = { dataUrl, w, h };
+      const prev = document.getElementById('edit_foto_preview');
+      prev.src = dataUrl; prev.style.display = 'block';
+      document.getElementById('edit_foto_empty').style.display = 'none';
+      document.getElementById('edit_foto_remove').style.display = 'inline-block';
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+function quitarFotoBios() {
+  _pendingFoto = null;
+  document.getElementById('edit_foto_preview').style.display = 'none';
+  document.getElementById('edit_foto_preview').src = '';
+  document.getElementById('edit_foto_empty').style.display = 'flex';
+  document.getElementById('edit_foto_remove').style.display = 'none';
+  document.getElementById('edit_foto_input').value = '';
+}
+
+document.getElementById('editModal').addEventListener('click', function(e) {
+  if (e.target === this) cerrarEditModal();
+});
+
+function guardarPC() {
+  const key = document.getElementById('edit_idx').value;
+  const base = data.find(r => r._key === key);
+  if (!base) return;
+
+  const nuevoNombre = document.getElementById('edit_nombre').value.trim();
+  const nuevoCod    = parseInt(document.getElementById('edit_cod').value.trim()) || 0;
+  const nuevaToma   = document.getElementById('edit_toma').value.trim();
+
+  // Save field edits
+  editsMap[key] = { nombre: nuevoNombre, cod: nuevoCod, toma: nuevaToma };
+  saveEdits(editsMap);
+
+  // Save SO (keyed by new nombre)
+  const sos = [];
+  document.querySelectorAll('#edit_so_checks input[type=checkbox]').forEach(cb => {
+    if (cb.checked) sos.push(cb.value);
+  });
+  // If nombre changed, migrate SO key
+  if (nuevoNombre !== key) {
+    soMap[nuevoNombre] = sos;
+    delete soMap[key];
+  } else {
+    soMap[nuevoNombre] = sos;
+  }
+  saveSOMap(soMap);
+
+  // Guardar Observaciones + Foto BIOS (keyed by nuevo nombre, igual que soMap)
+  const obsVal = document.getElementById('edit_obs').value.trim();
+  const prevMeta = getMeta(key);
+  const newMeta = { ...prevMeta, obs: obsVal };
+  if (_pendingFoto === null) {
+    delete newMeta.foto; delete newMeta.fotoW; delete newMeta.fotoH;
+  } else if (_pendingFoto) {
+    newMeta.foto = _pendingFoto.dataUrl; newMeta.fotoW = _pendingFoto.w; newMeta.fotoH = _pendingFoto.h;
+  }
+  if (nuevoNombre !== key) delete metaMap[key];
+  if (newMeta.obs || newMeta.foto) metaMap[nuevoNombre] = newMeta; else delete metaMap[nuevoNombre];
+  saveMeta(metaMap);
+
+  cerrarEditModal();
+  doSearch();
+}
+
+function eliminarPC() {
+  const key = document.getElementById('edit_idx').value;
+  const base = data.find(r => r._key === key);
+  if (!base) return;
+  if (!confirm('¿Eliminar el equipo "' + (getRecord(base).nombre) + '" del listado?\nSe ocultará pero no se borrará del archivo fuente.')) return;
+  crearBackup('Antes de eliminar "' + getRecord(base).nombre + '"');
+  editsMap[key] = { _deleted: true };
+  saveEdits(editsMap);
+  cerrarEditModal();
+  doSearch();
+}
+
+// ---- Asignar SO en lote ----
+function abrirSOLoteModal() {
+  if (selectedKeys.size === 0) { alert('Selecciona al menos un equipo en la tabla.'); return; }
+  document.getElementById('soLoteCount').textContent = selectedKeys.size + ' equipo(s) seleccionados';
+  document.querySelectorAll('#soLote_checks input[type=checkbox]').forEach(cb => cb.checked = false);
+  document.querySelector('input[name="soLoteModo"][value="reemplazar"]').checked = true;
+  document.getElementById('soLoteModal').classList.add('open');
+}
+function cerrarSOLoteModal() { document.getElementById('soLoteModal').classList.remove('open'); }
+document.getElementById('soLoteModal').addEventListener('click', function(e){ if (e.target === this) cerrarSOLoteModal(); });
+
+function aplicarSOLote() {
+  const chosen = Array.from(document.querySelectorAll('#soLote_checks input[type=checkbox]:checked')).map(cb => cb.value);
+  if (chosen.length === 0) { alert('Selecciona al menos un sistema operativo.'); return; }
+  const modo = document.querySelector('input[name="soLoteModo"]:checked').value;
+  const rowsToUpdate = data.filter(r => selectedKeys.has(r._key)).map(r => getRecord(r));
+  crearBackup('Antes de asignar SO a ' + rowsToUpdate.length + ' equipo(s)');
+  rowsToUpdate.forEach(rec => {
+    let sos = getSOs(rec.nombre);
+    if (modo === 'reemplazar') sos = [...chosen];
+    else chosen.forEach(c => { if (!sos.includes(c)) sos.push(c); });
+    soMap[rec.nombre] = sos;
+  });
+  saveSOMap(soMap);
+  cerrarSOLoteModal();
+  doSearch();
+  alert('Sistema operativo actualizado en ' + rowsToUpdate.length + ' equipo(s).');
+}
+
+// ---- Editar en lote (toma) ----
+function abrirEditLoteModal() {
+  if (selectedKeys.size === 0) { alert('Selecciona al menos un equipo en la tabla.'); return; }
+  document.getElementById('editLoteCount').textContent = selectedKeys.size + ' equipo(s) seleccionados';
+  document.getElementById('lote_toma').value = '';
+  document.getElementById('lote_toma').disabled = false;
+  document.getElementById('lote_toma_clear').checked = false;
+  document.getElementById('editLoteModal').classList.add('open');
+}
+function cerrarEditLoteModal() { document.getElementById('editLoteModal').classList.remove('open'); }
+document.getElementById('editLoteModal').addEventListener('click', function(e){ if (e.target === this) cerrarEditLoteModal(); });
+
+function aplicarEditLote() {
+  const clear = document.getElementById('lote_toma_clear').checked;
+  const nuevaToma = document.getElementById('lote_toma').value.trim();
+  if (!clear && !nuevaToma) { alert('Indica una toma nueva o marca "Vaciar toma".'); return; }
+  const rowsToUpdate = data.filter(r => selectedKeys.has(r._key));
+  crearBackup('Antes de editar en lote la toma de ' + rowsToUpdate.length + ' equipo(s)');
+  rowsToUpdate.forEach(base => {
+    const rec = getRecord(base);
+    const key = base._key;
+    const current = editsMap[key] || {};
+    editsMap[key] = {
+      nombre: current.nombre ?? rec.nombre,
+      cod: current.cod ?? rec.cod,
+      toma: clear ? '' : nuevaToma
+    };
+  });
+  saveEdits(editsMap);
+  cerrarEditLoteModal();
+  doSearch();
+  alert('Toma actualizada en ' + rowsToUpdate.length + ' equipo(s).');
+}
+
+// ---- Subir modificaciones (CSV) ----
+function csvEscape(s) {
+  s = String(s ?? '');
+  if (/[",\n]/.test(s)) return '"' + s.replace(/"/g,'""') + '"';
+  return s;
+}
+function descargarPlantillaCSV() {
+  const base = (selectedKeys.size > 0) ? filtered.filter(r => selectedKeys.has(r._key)) : filtered;
+  const rows = [['Nombre','CodInventario','Toma','SO']];
+  base.forEach(r => rows.push([r.nombre, r.cod>0?r.cod:'', r.toma||'', getSOs(r.nombre).join(' / ')]));
+  const csv = rows.map(row => row.map(csvEscape).join(',')).join('\r\n');
+  const blob = new Blob(['\ufeff'+csv], {type:'text/csv;charset=utf-8;'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `plantilla_modificaciones_${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+}
+
+function parseCSV(text) {
+  const rows = [];
+  let row = [], field = '', inQuotes = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inQuotes) {
+      if (c === '"') { if (text[i+1] === '"') { field += '"'; i++; } else inQuotes = false; }
+      else field += c;
+    } else {
+      if (c === '"') inQuotes = true;
+      else if (c === ',') { row.push(field); field = ''; }
+      else if (c === '\n') { row.push(field); rows.push(row); row = []; field = ''; }
+      else if (c === '\r') { /* skip */ }
+      else field += c;
+    }
+  }
+  if (field.length || row.length) { row.push(field); rows.push(row); }
+  return rows.filter(r => r.length && r.some(c => c !== ''));
+}
+
+let _importPending = [];
+function handleImportFile(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    let text = e.target.result;
+    if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+    const rows = parseCSV(text);
+    if (rows.length < 2) { alert('El archivo no contiene datos.'); return; }
+    const header = rows[0].map(h => h.trim().toLowerCase());
+    const idxNombre = header.indexOf('nombre');
+    const idxCod = header.findIndex(h => h.includes('cod'));
+    const idxToma = header.indexOf('toma');
+    const idxSO = header.findIndex(h => h === 'so' || h.includes('sistema'));
+    if (idxNombre === -1) { alert('El CSV debe tener una columna "Nombre".'); return; }
+    _importPending = [];
+    for (let i = 1; i < rows.length; i++) {
+      const r = rows[i];
+      const nombre = (r[idxNombre] || '').trim();
+      if (!nombre) continue;
+      const base = data.find(d => getRecord(d).nombre === nombre || d.nombre === nombre);
+      _importPending.push({
+        nombre,
+        cod: idxCod > -1 ? (r[idxCod] || '').trim() : '',
+        toma: idxToma > -1 ? (r[idxToma] || '').trim() : '',
+        so: idxSO > -1 ? (r[idxSO] || '').trim() : '',
+        found: !!base,
+        key: base ? base._key : null
+      });
+    }
+    renderImportPreview();
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+function renderImportPreview() {
+  const wrap = document.getElementById('importPreviewWrap');
+  const body = document.getElementById('importPreviewBody');
+  const summary = document.getElementById('importPreviewSummary');
+  const found = _importPending.filter(p => p.found).length;
+  summary.textContent = `${_importPending.length} fila(s) leídas · ${found} coinciden con equipos existentes · ${_importPending.length - found} no encontradas`;
+  body.innerHTML = _importPending.map(p => `<tr>
+    <td>${p.nombre}</td>
+    <td>${p.cod || '—'}</td>
+    <td>${p.toma || '—'}</td>
+    <td>${p.so || '—'}</td>
+    <td class="${p.found ? 'import-ok' : 'import-bad'}">${p.found ? '✓ encontrado' : '✕ no encontrado'}</td>
+  </tr>`).join('');
+  wrap.style.display = 'block';
+  const btn = document.getElementById('btnAplicarImport');
+  const hint = document.getElementById('importApplyHint');
+  btn.disabled = found === 0;
+  if (found === 0) {
+    hint.textContent = 'Ningún nombre del CSV coincide con equipos existentes: revisa la columna "Nombre"';
+    hint.style.color = '#b3251f';
+  } else {
+    hint.textContent = `Listo para aplicar cambios a ${found} equipo(s)`;
+    hint.style.color = '#3ecf6e';
+  }
+}
+
+function aplicarImport() {
+  let count = 0;
+  const totalFound = _importPending.filter(p => p.found).length;
+  if (totalFound > 0) crearBackup('Antes de importar CSV (' + totalFound + ' equipo(s))');
+  _importPending.filter(p => p.found).forEach(p => {
+    const base = data.find(d => d._key === p.key);
+    if (!base) return;
+    const rec = getRecord(base);
+    const current = editsMap[p.key] || {};
+    const updated = {
+      nombre: current.nombre ?? rec.nombre,
+      cod: current.cod ?? rec.cod,
+      toma: current.toma ?? rec.toma
+    };
+    if (p.cod !== '') updated.cod = parseInt(p.cod) || updated.cod;
+    if (p.toma !== '') updated.toma = p.toma;
+    editsMap[p.key] = updated;
+    if (p.so !== '') {
+      const sos = p.so.split('/').map(s => s.trim()).filter(Boolean);
+      soMap[updated.nombre] = sos;
+    }
+    count++;
+  });
+  saveEdits(editsMap);
+  saveSOMap(soMap);
+  cerrarImportModal();
+  doSearch();
+  alert(count + ' equipo(s) actualizados desde el archivo.');
+}
+
+function abrirImportModal() {
+  _importPending = [];
+  document.getElementById('importPreviewWrap').style.display = 'none';
+  document.getElementById('importFileInput').value = '';
+  document.getElementById('btnAplicarImport').disabled = true;
+  const hint = document.getElementById('importApplyHint');
+  hint.textContent = 'Selecciona un archivo CSV con coincidencias para poder aplicar';
+  hint.style.color = '#999';
+  document.getElementById('importModal').classList.add('open');
+}
+function cerrarImportModal() { document.getElementById('importModal').classList.remove('open'); }
+document.getElementById('importModal').addEventListener('click', function(e){ if (e.target === this) cerrarImportModal(); });
+
+// ---- Restaurar copia de seguridad ----
+function abrirRestoreModal() {
+  renderRestoreList();
+  document.getElementById('restoreModal').classList.add('open');
+}
+function cerrarRestoreModal() { document.getElementById('restoreModal').classList.remove('open'); }
+document.getElementById('restoreModal').addEventListener('click', function(e){ if (e.target === this) cerrarRestoreModal(); });
+
+function crearBackupManual() {
+  crearBackup('Copia manual (' + fmtBackupDate(Date.now()) + ')');
+  renderRestoreList();
+  alert('Copia de seguridad guardada.');
+}
+
+function renderRestoreList() {
+  const backups = loadBackups();
+  const list = document.getElementById('restoreList');
+  if (backups.length === 0) {
+    list.innerHTML = '<div style="padding:1.5rem;text-align:center;color:#999;font-family:\'IBM Plex Mono\',monospace;font-size:0.8rem;">Todavía no hay copias de seguridad.<br>Se crearán automáticamente al hacer cambios en lote.</div>';
+    return;
+  }
+  list.innerHTML = backups.map((b, i) => {
+    const nEdits = Object.keys(b.edits || {}).length;
+    const nSO = Object.keys(b.so || {}).length;
+    return `<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;border-bottom:1px solid #eeece8;">
+      <div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:0.8rem;font-weight:600;color:#1a1a1a;">${fmtBackupDate(b.ts)}</div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:0.72rem;color:#777;margin-top:2px;">${b.label.replace(/</g,'&lt;')} · ${nEdits} edición(es) · ${nSO} equipo(s) con SO</div>
+      </div>
+      <button class="btn btn-primary" style="height:32px;padding:0 12px;font-size:0.72rem;flex-shrink:0;" onclick="restaurarBackup(${i})">Restaurar</button>
+    </div>`;
+  }).join('');
+}
+
+function restaurarBackup(idx) {
+  const backups = loadBackups();
+  const b = backups[idx];
+  if (!b) return;
+  if (!confirm('¿Restaurar el estado guardado el ' + fmtBackupDate(b.ts) + ' ("' + b.label + '")?\n\nEsto sustituirá todas las ediciones y asignaciones de SO actuales por las de esa copia.')) return;
+  // Guardar también el estado actual antes de restaurar, por si hace falta deshacer la restauración
+  crearBackup('Antes de restaurar copia del ' + fmtBackupDate(b.ts));
+  editsMap = JSON.parse(JSON.stringify(b.edits || {}));
+  soMap = JSON.parse(JSON.stringify(b.so || {}));
+  saveEdits(editsMap);
+  saveSOMap(soMap);
+  selectedKeys.clear();
+  cerrarRestoreModal();
+  doSearch();
+  alert('Estado restaurado correctamente.');
+}
+</script>
+
+<script>
+function abrirInforme() {
+  const rows = selectedKeys.size > 0
+    ? filtered.filter(r => selectedKeys.has(r._key))
+    : filtered;
+  const n = rows.length;
+  document.getElementById('inf_modal_title').textContent = selectedKeys.size > 0
+    ? `Informe \u2014 ${n} equipo${n!==1?'s':''} seleccionados`
+    : `Informe \u2014 todos los resultados (${n})`;
+  document.getElementById('inf_fecha').value = new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'long',year:'numeric'});
+
+  const tbody = document.getElementById('inf_equipos_tbody');
+  tbody.innerHTML = rows.map((r, i) => {
+    const sos = getSOs(r.nombre).join(', ') || '\u2014';
+    const bg = i%2===0 ? '#fafaf8' : '#fff';
+    return `<tr style="background:${bg};">
+      <td style="padding:6px 10px;border-bottom:1px solid #eeece8;font-weight:600;">${r.nombre}</td>
+      <td style="padding:6px 10px;border-bottom:1px solid #eeece8;color:#555;">${sos}</td>
+      <td style="padding:4px 6px;border-bottom:1px solid #eeece8;">
+        <input type="text" data-nombre="${r.nombre.replace(/"/g,'&quot;')}"
+          placeholder="Escribe una conclusi\u00f3n..."
+          style="width:100%;border:none;background:transparent;font-family:'IBM Plex Mono',monospace;font-size:0.78rem;outline:none;color:#1a1a1a;"
+          onfocus="this.style.background='#f0f4ff';this.style.borderRadius='2px';"
+          onblur="this.style.background='transparent';">
+      </td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('informeModal').style.display = 'flex';
+}
+
+function cerrarInforme() {
+  document.getElementById('informeModal').style.display = 'none';
+}
+function resetInforme() {
+  // Clear all per-row conclusion inputs
+  document.querySelectorAll('#inf_equipos_tbody input[data-nombre]').forEach(inp => { inp.value = ''; inp.style.background = 'transparent'; });
+  // Clear general conclusion
+  document.getElementById('inf_conclusion_general').value = '';
+  // Reset title and responsable to defaults
+  document.getElementById('inf_titulo').value = 'Informe de Equipos — CSIRC / UGR';
+  document.getElementById('inf_responsable').value = '';
+  document.getElementById('inf_fecha').value = new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'long',year:'numeric'});
+}
+document.getElementById('informeModal').addEventListener('click', function(e){ if(e.target===this) cerrarInforme(); });
+
+function _getInformeData() {
+  const titulo = document.getElementById('inf_titulo').value || 'Informe de Equipos';
+  const fecha  = document.getElementById('inf_fecha').value || '';
+  const resp   = document.getElementById('inf_responsable').value || '';
+  const cgral  = document.getElementById('inf_conclusion_general').value || '';
+  const conclusiones = {};
+  document.querySelectorAll('#inf_equipos_tbody input[data-nombre]').forEach(inp => {
+    conclusiones[inp.dataset.nombre] = inp.value.trim();
+  });
+  const rows = selectedKeys.size > 0
+    ? filtered.filter(r => selectedKeys.has(r._key))
+    : filtered;
+  return { titulo, fecha, resp, cgral, conclusiones, rows };
+}
+
+function generarInforme(formato) {
+  const d = _getInformeData();
+  cerrarInforme();
+  if (formato === 'html')       _informeHTML(d);
+  else if (formato === 'excel') _informeExcel(d);
+  else if (formato === 'word')  _informeWord(d);
+}
+
+// ---- HTML ----
+function _informeHTML(d) {
+  function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  const filas = d.rows.map((r,i) => {
+    const sos   = getSOs(r.nombre).join(', ') || '\u2014';
+    const concl = d.conclusiones[r.nombre] || '';
+    const bg    = i%2===0 ? '#fafaf8' : '#fff';
+    return `<tr style="background:${bg}">
+      <td style="padding:8px 14px;border-bottom:1px solid #eeece8;font-weight:600;">${esc(r.nombre)}</td>
+      <td style="padding:8px 14px;border-bottom:1px solid #eeece8;">${esc(sos)}</td>
+      <td style="padding:8px 14px;border-bottom:1px solid #eeece8;color:#444;">${concl ? esc(concl) : '<span style="color:#ccc">\u2014</span>'}</td>
+    </tr>`;
+  }).join('');
+  const html = `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>${esc(d.titulo)}</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'IBM Plex Sans',sans-serif;color:#1a1a1a;padding:2.5rem 3rem;max-width:900px;margin:0 auto;font-size:0.9rem;}
+  .hdr{border-bottom:3px solid #1a1a1a;padding-bottom:1rem;margin-bottom:2rem;}
+  .hdr h1{font-family:'IBM Plex Mono',monospace;font-size:1.4rem;font-weight:600;}
+  .meta{margin-top:0.5rem;font-family:'IBM Plex Mono',monospace;font-size:0.75rem;color:#666;display:flex;gap:2rem;flex-wrap:wrap;}
+  .meta b{color:#1a1a1a;}
+  table{width:100%;border-collapse:collapse;font-size:0.82rem;}
+  thead th{background:#1a1a1a;color:#f2f1ee;padding:9px 14px;text-align:left;font-size:0.68rem;text-transform:uppercase;letter-spacing:0.06em;font-family:'IBM Plex Mono',monospace;}
+  .concl-box{margin-top:2.5rem;border-top:2px solid #1a1a1a;padding-top:1.5rem;}
+  .concl-box h2{font-family:'IBM Plex Mono',monospace;font-size:0.9rem;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.75rem;}
+  .concl-text{background:#f7f6f3;border-left:3px solid #1a1a1a;padding:0.9rem 1.1rem;font-size:0.88rem;color:#333;white-space:pre-wrap;line-height:1.7;}
+  .footer{margin-top:2.5rem;padding-top:1rem;border-top:1px solid #e8e6e2;font-size:0.7rem;color:#aaa;font-family:'IBM Plex Mono',monospace;display:flex;justify-content:space-between;}
+  .no-print{position:fixed;top:1rem;right:1rem;display:flex;gap:8px;}
+  .no-print button{padding:7px 14px;border-radius:3px;border:1px solid #1a1a1a;font-family:'IBM Plex Mono',monospace;font-size:0.75rem;font-weight:600;cursor:pointer;}
+  .btn-p{background:#1a1a1a;color:#f2f1ee;}.btn-c{background:#fff;}
+  @media print{.no-print{display:none;}body{padding:1.5rem 2rem;}}
+</style></head><body>
+<div class="no-print">
+  <button class="btn-c" onclick="window.close()">\u2715 Cerrar</button>
+  <button class="btn-p" onclick="window.print()">\uD83D\uDDA8 Imprimir / PDF</button>
+</div>
+<div class="hdr">
+  <h1>${esc(d.titulo)}</h1>
+  <div class="meta">
+    ${d.fecha?`<span><b>Fecha:</b> ${esc(d.fecha)}</span>`:''}
+    ${d.resp?`<span><b>Responsable:</b> ${esc(d.resp)}</span>`:''}
+    <span><b>Equipos:</b> ${d.rows.length}</span>
+    <span><b>Generado:</b> ${new Date().toLocaleString('es-ES')}</span>
+  </div>
+</div>
+<table>
+  <thead><tr>
+    <th style="width:28%">Nombre PC</th>
+    <th style="width:24%">Sistema Operativo</th>
+    <th>Conclusi\u00f3n</th>
+  </tr></thead>
+  <tbody>${filas}</tbody>
+</table>
+${d.cgral ? `<div class="concl-box"><h2>Conclusi\u00f3n general</h2><div class="concl-text">${esc(d.cgral)}</div></div>` : ''}
+<div class="footer">
+  <span>CSIRC \u00b7 Apoyo a la Docencia \u00b7 Universidad de Granada</span>
+  <span>${d.rows.length} equipos \u00b7 ${new Date().toLocaleDateString('es-ES')}</span>
+</div>
+</body></html>`;
+  const win = window.open('', '_blank');
+  win.document.write(html);
+  win.document.close();
+}
+
+// ---- Excel ----
+function _informeExcel(d) {
+  function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+  // Índices de estilo definidos en styles.xml más abajo
+  const S = { title:1, label:2, value:3, header:4, dataOdd:5, dataEven:6, concl:7 };
+
+  const rows = [];
+  rows.push({ cells: [{v:d.titulo, s:S.title}], height:30, merge:'A1:C1' });
+  rows.push({ cells: [] });
+  if (d.fecha) rows.push({ cells: [{v:'Fecha:', s:S.label},{v:d.fecha, s:S.value}] });
+  if (d.resp)  rows.push({ cells: [{v:'Responsable:', s:S.label},{v:d.resp, s:S.value}] });
+  rows.push({ cells: [{v:'Generado:', s:S.label},{v:new Date().toLocaleString('es-ES'), s:S.value}] });
+  rows.push({ cells: [{v:'Total equipos:', s:S.label},{v:String(d.rows.length), s:S.value}] });
+  rows.push({ cells: [] });
+  const headerRowIdx = rows.length; // fila (0-based) donde se coloca la cabecera
+  rows.push({ cells: [
+    {v:'Nombre PC', s:S.header},
+    {v:'Sistema Operativo', s:S.header},
+    {v:'Conclusi\u00f3n', s:S.header}
+  ], height:20 });
+  d.rows.forEach((r,i) => {
+    const sos = getSOs(r.nombre).join(', ') || '\u2014';
+    const concl = d.conclusiones[r.nombre] || '';
+    const st = i%2===0 ? S.dataOdd : S.dataEven;
+    rows.push({ cells: [ {v:r.nombre, s:st}, {v:sos, s:st}, {v:concl, s:st} ] });
+  });
+  if (d.cgral) {
+    rows.push({ cells: [] });
+    rows.push({ cells: [{v:'Conclusi\u00f3n general', s:S.label}] });
+    const cgralRow = rows.length + 1;
+    rows.push({ cells: [{v:d.cgral, s:S.concl}], height:60, merge:`A${cgralRow}:C${cgralRow}` });
+  }
+
+  function buildSheetXml(rowDefs) {
+    const merges = [];
+    let body = '';
+    rowDefs.forEach((row, ri) => {
+      const rNum = ri + 1;
+      let cells = '';
+      row.cells.forEach((cell, ci) => {
+        const ref = String.fromCharCode(65+ci) + rNum;
+        const sAttr = cell.s ? ` s="${cell.s}"` : '';
+        cells += `<c r="${ref}"${sAttr} t="inlineStr"><is><t xml:space="preserve">${esc(cell.v)}</t></is></c>`;
+      });
+      const htAttr = row.height ? ` ht="${row.height}" customHeight="1"` : '';
+      body += cells ? `<row r="${rNum}"${htAttr}>${cells}</row>` : `<row r="${rNum}"${htAttr}/>`;
+      if (row.merge) merges.push(row.merge);
+    });
+    const mergeXml = merges.length ? `<mergeCells count="${merges.length}">${merges.map(m=>`<mergeCell ref="${m}"/>`).join('')}</mergeCells>` : '';
+    const freezeRow = headerRowIdx + 1;
+    const panes = `<sheetViews><sheetView tabSelected="1" workbookViewId="0"><pane ySplit="${freezeRow}" topLeftCell="A${freezeRow+1}" activePane="bottomLeft" state="frozen"/><selection pane="bottomLeft" activeCell="A${freezeRow+1}" sqref="A${freezeRow+1}"/></sheetView></sheetViews>`;
+    const cols = `<cols><col min="1" max="1" width="32" customWidth="1"/><col min="2" max="2" width="20" customWidth="1"/><col min="3" max="3" width="55" customWidth="1"/></cols>`;
+    return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">${panes}${cols}<sheetData>${body}</sheetData>${mergeXml}</worksheet>`;
+  }
+
+  const stylesXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+<fonts count="5">
+<font><sz val="11"/><name val="Calibri"/></font>
+<font><b/><sz val="16"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font>
+<font><b/><sz val="10"/><color rgb="FF666666"/><name val="Calibri"/></font>
+<font><sz val="10"/><color rgb="FF333333"/><name val="Calibri"/></font>
+<font><b/><sz val="10"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font>
+</fonts>
+<fills count="4">
+<fill><patternFill patternType="none"/></fill>
+<fill><patternFill patternType="gray125"/></fill>
+<fill><patternFill patternType="solid"><fgColor rgb="FF8B1A2E"/><bgColor indexed="64"/></patternFill></fill>
+<fill><patternFill patternType="solid"><fgColor rgb="FFFAFAF8"/><bgColor indexed="64"/></patternFill></fill>
+</fills>
+<borders count="2">
+<border><left/><right/><top/><bottom/><diagonal/></border>
+<border><left style="thin"><color rgb="FFCCCCCC"/></left><right style="thin"><color rgb="FFCCCCCC"/></right><top style="thin"><color rgb="FFCCCCCC"/></top><bottom style="thin"><color rgb="FFCCCCCC"/></bottom><diagonal/></border>
+</borders>
+<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>
+<cellXfs count="8">
+<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>
+<xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1" applyAlignment="1"><alignment vertical="center" indent="1"/></xf>
+<xf numFmtId="0" fontId="2" fillId="0" borderId="0" xfId="0" applyFont="1"/>
+<xf numFmtId="0" fontId="3" fillId="0" borderId="0" xfId="0" applyFont="1"/>
+<xf numFmtId="0" fontId="4" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment vertical="center" indent="1"/></xf>
+<xf numFmtId="0" fontId="0" fillId="3" borderId="1" xfId="0" applyFill="1" applyBorder="1"/>
+<xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1"/>
+<xf numFmtId="0" fontId="3" fillId="3" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment wrapText="1" vertical="top"/></xf>
+</cellXfs>
+</styleSheet>`;
+
+  const ct   = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>`;
+  const rels = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`;
+  const wb   = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Informe" sheetId="1" r:id="rId1"/></sheets></workbook>`;
+  const wbR  = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`;
+
+  const zip = buildZip([
+    {name:'[Content_Types].xml', data:strToU8(ct)},
+    {name:'_rels/.rels', data:strToU8(rels)},
+    {name:'xl/workbook.xml', data:strToU8(wb)},
+    {name:'xl/_rels/workbook.xml.rels', data:strToU8(wbR)},
+    {name:'xl/styles.xml', data:strToU8(stylesXml)},
+    {name:'xl/worksheets/sheet1.xml', data:strToU8(buildSheetXml(rows))},
+  ]);
+  const blob = new Blob([zip],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `informe_equipos_${new Date().toISOString().slice(0,10)}.xlsx`;
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+}
+
+// ---- Word ----
+function _informeWord(d) {
+  const btn = document.getElementById('btnWord');
+  btn.textContent = '\u29D7 Generando...'; btn.disabled = true;
+  function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  const GRANATE = '8B1A2E';
+  const colW = [2400, 2200, 4400];
+
+  let docBody = '';
+
+  // Banner de marca + título sobre fondo granate UGR
+  docBody += `<w:p><w:pPr><w:shd w:val="clear" w:color="auto" w:fill="${GRANATE}"/><w:spacing w:before="0" w:after="0"/></w:pPr><w:r><w:rPr><w:color w:val="FFFFFF"/><w:sz w:val="16"/></w:rPr><w:t>CSIRC \u00b7 APOYO A LA DOCENCIA \u00b7 UNIVERSIDAD DE GRANADA</w:t></w:r></w:p>`;
+  docBody += `<w:p><w:pPr><w:shd w:val="clear" w:color="auto" w:fill="${GRANATE}"/><w:spacing w:before="0" w:after="0"/></w:pPr><w:r><w:rPr><w:b/><w:color w:val="FFFFFF"/><w:sz w:val="36"/></w:rPr><w:t>${esc(d.titulo)}</w:t></w:r></w:p>`;
+  docBody += `<w:p><w:pPr><w:shd w:val="clear" w:color="auto" w:fill="${GRANATE}"/><w:spacing w:before="0" w:after="120"/></w:pPr><w:r><w:rPr><w:color w:val="FFFFFF"/><w:sz w:val="4"/></w:rPr><w:t xml:space="preserve"> </w:t></w:r></w:p>`;
+  docBody += `<w:p><w:r><w:t xml:space="preserve"> </w:t></w:r></w:p>`;
+
+  [d.fecha?'Fecha: '+d.fecha:'', d.resp?'Responsable: '+d.resp:'', 'Equipos: '+d.rows.length, 'Generado: '+new Date().toLocaleString('es-ES')].filter(Boolean).forEach(m=>{
+    docBody += `<w:p><w:r><w:rPr><w:sz w:val="18"/><w:color w:val="666666"/></w:rPr><w:t>${esc(m)}</w:t></w:r></w:p>`;
+  });
+  docBody += `<w:p><w:r><w:t xml:space="preserve"> </w:t></w:r></w:p>`;
+
+  // Tabla de equipos
+  let tableBody = `<w:tbl><w:tblPr><w:tblStyle w:val="TableGrid"/><w:tblW w:w="9000" w:type="dxa"/></w:tblPr><w:tblGrid>${colW.map(w=>`<w:gridCol w:w="${w}"/>`).join('')}</w:tblGrid>`;
+  tableBody += `<w:tr>${['Nombre PC','Sistema Operativo','Conclusi\u00f3n'].map((h,i)=>`<w:tc><w:tcPr><w:tcW w:w="${colW[i]}" w:type="dxa"/><w:shd w:val="clear" w:color="auto" w:fill="${GRANATE}"/></w:tcPr><w:p><w:r><w:rPr><w:b/><w:color w:val="FFFFFF"/><w:sz w:val="18"/></w:rPr><w:t>${esc(h)}</w:t></w:r></w:p></w:tc>`).join('')}</w:tr>`;
+  d.rows.forEach((r,i) => {
+    const fill  = i%2===0?'FAFAF8':'FFFFFF';
+    const sos   = getSOs(r.nombre).join(', ')||'\u2014';
+    const concl = d.conclusiones[r.nombre]||'';
+    const cells = [r.nombre, sos, concl];
+    tableBody += `<w:tr>${cells.map((c,ci)=>`<w:tc><w:tcPr><w:tcW w:w="${colW[ci]}" w:type="dxa"/><w:shd w:val="clear" w:color="auto" w:fill="${fill}"/></w:tcPr><w:p><w:r><w:rPr><w:sz w:val="18"/>${ci===0?'<w:b/>':''}</w:rPr><w:t xml:space="preserve">${esc(c)}</w:t></w:r></w:p></w:tc>`).join('')}</w:tr>`;
+  });
+  tableBody += `</w:tbl>`;
+  docBody += tableBody;
+
+  if (d.cgral) {
+    docBody += `<w:p><w:r><w:t xml:space="preserve"> </w:t></w:r></w:p>`;
+    docBody += `<w:p><w:pPr><w:pBdr><w:left w:val="single" w:sz="18" w:space="8" w:color="${GRANATE}"/></w:pBdr><w:pStyle w:val="Heading2"/></w:pPr><w:r><w:t>Conclusi\u00f3n general</w:t></w:r></w:p>`;
+    docBody += `<w:p><w:pPr><w:pBdr><w:left w:val="single" w:sz="18" w:space="8" w:color="${GRANATE}"/></w:pBdr><w:ind w:left="120"/><w:shd w:val="clear" w:color="auto" w:fill="F7F6F3"/></w:pPr><w:r><w:rPr><w:sz w:val="20"/></w:rPr><w:t xml:space="preserve">${esc(d.cgral)}</w:t></w:r></w:p>`;
+  }
+  docBody += `<w:p><w:r><w:t xml:space="preserve"> </w:t></w:r></w:p>`;
+  docBody += `<w:p><w:pPr><w:pBdr><w:top w:val="single" w:sz="4" w:space="6" w:color="E8E6E2"/></w:pBdr></w:pPr><w:r><w:rPr><w:sz w:val="16"/><w:color w:val="AAAAAA"/></w:rPr><w:t>CSIRC \u00b7 Apoyo a la Docencia \u00b7 Universidad de Granada \u00b7 ${new Date().toLocaleDateString('es-ES')}</w:t></w:r></w:p>`;
+
+  const docXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>${docBody}<w:sectPr><w:pgSz w:w="12240" w:h="15840"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440"/></w:sectPr></w:body></w:document>`;
+  const styles = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:style w:type="paragraph" w:styleId="Normal"><w:name w:val="Normal"/><w:rPr><w:sz w:val="20"/></w:rPr></w:style><w:style w:type="paragraph" w:styleId="Heading1"><w:name w:val="heading 1"/><w:basedOn w:val="Normal"/><w:pPr><w:spacing w:before="240" w:after="120"/></w:pPr><w:rPr><w:b/><w:sz w:val="32"/><w:color w:val="1a1a1a"/></w:rPr></w:style><w:style w:type="paragraph" w:styleId="Heading2"><w:name w:val="heading 2"/><w:basedOn w:val="Normal"/><w:pPr><w:spacing w:before="180" w:after="80"/></w:pPr><w:rPr><w:b/><w:sz w:val="24"/><w:color w:val="${GRANATE}"/></w:rPr></w:style><w:style w:type="table" w:styleId="TableGrid"><w:name w:val="Table Grid"/><w:tblPr><w:tblBorders><w:top w:val="single" w:sz="4" w:color="CCCCCC"/><w:left w:val="single" w:sz="4" w:color="CCCCCC"/><w:bottom w:val="single" w:sz="4" w:color="CCCCCC"/><w:right w:val="single" w:sz="4" w:color="CCCCCC"/><w:insideH w:val="single" w:sz="4" w:color="CCCCCC"/><w:insideV w:val="single" w:sz="4" w:color="CCCCCC"/></w:tblBorders></w:tblPr></w:style></w:styles>`;
+  const ct   = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/></Types>`;
+  const rels = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>`;
+  const wRels= `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`;
+  const zip = buildZip([
+    {name:'[Content_Types].xml', data:strToU8(ct)},
+    {name:'_rels/.rels', data:strToU8(rels)},
+    {name:'word/document.xml', data:strToU8(docXml)},
+    {name:'word/styles.xml', data:strToU8(styles)},
+    {name:'word/_rels/document.xml.rels', data:strToU8(wRels)},
+  ]);
+  const blob = new Blob([zip],{type:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `informe_equipos_${new Date().toISOString().slice(0,10)}.docx`;
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+  btn.textContent = '\uD83D\uDCDD Word'; btn.disabled = false;
+}
+</script>
+</body></html>
